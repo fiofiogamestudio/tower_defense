@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "TowerBase.h"
 #include "Monster.h"
+#include "Tower.h"
 #include "ui/CocosGUI.h"
 #include "ReaderJson.h"
 
@@ -14,6 +15,7 @@ using namespace ui;
 #define TOWERBASE_Z (5)
 #define TOWER_Z (10)
 #define MOSTER_Z (15)
+#define AMMO_Z (16)
 #define UI_Z (20)
 
 Scene * SceneGame::createScene()
@@ -37,18 +39,58 @@ bool SceneGame::init()
 	initTouch();
 	//初始化地图
 	initMap(0);
-
-
-	Monster* test =(Monster*) Monster::create(new Pos(4,4));
+	
+	Monster*
+	test =(Monster*) Monster::createByPath(vec_path);
 	test->BindSprite("TestAnim/test0.png");
-	test->BindAnimation("TestAnim/test", 5,0.1f);
+	test->BindAnimation("TestAnim/test", 6,0.1f);
 	test->SetAnimationPlay(true);
 	this->addChild(test,MOSTER_Z);
+	vec_monster.pushBack(test);
 
-	
+	//绑定update函数
+	this->schedule(schedule_selector(SceneGame::update));
+}
 
-
-
+void SceneGame::update(float dt)
+{
+	//怪物移动
+	{
+		int num_monster = vec_monster.size();
+		for (int i = 0; i < num_monster; i++) {
+			//vec_monster.at(i)->move(Vec2(50, 0), dt);
+			vec_monster.at(i)->moveByPath(dt);
+		}
+	}
+	//防御塔攻击
+	{
+		int num_tower = vec_tower.size();
+		for (int i = 0; i < num_tower; i++) {
+			bool flag_fire = false;
+			Vec2 dir_fire;
+			//检测所有怪物
+			{
+				for (int j = 0; j < vec_monster.size(); j++) {
+					float distance = vec_tower.at(i)->vec_local.distance(vec_monster.at(j)->getPosition());
+					if (distance < 1000.0f) {
+						flag_fire = true;
+						dir_fire = Vec2(vec_tower.at(i)->vec_local, vec_monster.at(j)->getPosition());
+						break;
+					}
+				}
+			}
+			if (flag_fire) {
+				vec_tower.at(i)->fire(dt, Vec2(0, 30), dir_fire, vec_ammo, this, AMMO_Z);
+			}
+		}
+	}
+	//子弹移动
+	{
+		int num_ammo = vec_ammo.size();
+		for (int i = 0; i < num_ammo; i++) {
+			vec_ammo.at(i)->moveAmmo(dt);
+		}
+	}
 }
 
 
@@ -80,7 +122,14 @@ void SceneGame::initUI()
 		Button* button = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
 		button->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 			if (type == ui::Widget::TouchEventType::ENDED) {
-				log("click button!");
+				//这里建塔的过程
+				Tower* tower = Tower::create();
+				tower->BindSprite("TestAnim/testtower0.png");
+				tower->BindAnimation("TestAnim/testtower", 6,0.2f);
+				tower->SetAnimationPlay(true);
+				vec_towerbase.at(index_towerbase_selected)->SetTower(tower);
+				//添加到vec_towet里面
+				vec_tower.pushBack(tower);
 			}
 		});
 		panel_tower->addChild(button);
@@ -140,7 +189,7 @@ void SceneGame::initMap(int i)
 		auto node_path = vec_node_path.at(i).asValueMap();
 		float posx = node_path.at("x").asFloat();
 		float posy = node_path.at("y").asFloat();
-		log("pos%f,%f", posx, posy);
+		vec_path.pushBack(new Pos(posx, posy));
 	}
 }
 

@@ -4,5 +4,5 @@
 using namespace cocos2d;
 class TowerInfo {
 public :
-	void SetTowerInfo(TowerBase* tower);
+	
 };

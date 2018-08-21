@@ -2,6 +2,9 @@
 #include "cocos2d.h"
 #include "Pos.h"
 #include "TowerBase.h"
+#include "Monster.h"
+#include "Tower.h"
+#include "Ammo.h"
 using namespace cocos2d;
 
 class SceneGame :public Layer {
@@ -9,7 +12,8 @@ public:
 	static Scene* createScene();
 	CREATE_FUNC(SceneGame);
 	virtual bool init();
-private:
+	void update(float dt);
+public:
 	TMXTiledMap * _map;
 
 	Vector<TowerBase*> vec_towerbase;
@@ -18,6 +22,12 @@ private:
 	Node* node_UI_tower;
 
 	Vector<Pos*> vec_path;
+
+	Vector<Monster*> vec_monster;
+
+	Vector<Tower*> vec_tower;
+
+	Vector<Ammo*> vec_ammo;
 public:
 	void initNode();
 
@@ -30,4 +40,5 @@ public:
 	int GetGridIndex(Pos* pos);
 	bool IsTowerbaseSelected(int index,Point point);
 	void DetectorVecTowebase(Point point);
+
 };

@@ -6,15 +6,14 @@ Pos::Pos(int x, int y)
 	posy = y;
 }
 
-Pos::~Pos()
+Pos::Pos(float x, float y)
 {
+	posx = x / 40;
+	posy = y / 40;
 }
 
-Pos * Pos::createPos(float x, float y)
+Pos::~Pos()
 {
-	int posx = x / 40;
-	int posy = y / 40;
-	return new Pos(posx,posy);
 }
 
 int Pos::GetPosx()

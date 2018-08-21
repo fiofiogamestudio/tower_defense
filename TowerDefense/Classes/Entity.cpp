@@ -79,3 +79,10 @@ bool Entity::IsContains(Point pos)
 	//return _sprite->getBoundingBox().containsPoint(pos);
 	return flag;
 }
+
+void Entity::move(Vec2 dir, float dt)
+{
+	Vec2 pos = this->getPosition();
+	pos += dir * dt;
+	this->setPosition(pos);
+}

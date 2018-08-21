@@ -20,4 +20,6 @@ public:
 	void SetAnimationPlay(bool play);
 	void SetSpriteSize(Size size);
 	bool IsContains(Point pos);
+	//ÒÆ¶¯
+	void move(Vec2 dir, float dt);
 };

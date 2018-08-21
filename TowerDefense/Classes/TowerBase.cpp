@@ -26,3 +26,13 @@ int TowerBase::GetTypeIndex()
 {
 	return index_type;
 }
+
+void TowerBase::SetTower(Tower * tower)
+{
+	_tower = tower;
+	_tower->vec_local = getPosition();
+	this->addChild(_tower);
+	_tower->setPosition(Vec2(0, 0));
+	
+}
+

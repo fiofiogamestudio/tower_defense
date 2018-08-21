@@ -7,8 +7,8 @@ private:
 	int posy;
 public:
 	Pos(int x, int y);
+	Pos(float x, float y);
 	~Pos();
-	static Pos* createPos(float x, float y);
 	int GetPosx();
 	int GetPosy();
 };
