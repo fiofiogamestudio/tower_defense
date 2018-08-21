@@ -1,7 +1,11 @@
 #include "SceneGame.h"
+#include "Pos.h"
 #include "Entity.h"
 #include "TowerBase.h"
+#include "Monster.h"
 #include "ui/CocosGUI.h"
+#include "ReaderJson.h"
+
 using namespace ui;
 
 #define ROWS (32)
@@ -9,6 +13,7 @@ using namespace ui;
 
 #define TOWERBASE_Z (5)
 #define TOWER_Z (10)
+#define MOSTER_Z (15)
 #define UI_Z (20)
 
 Scene * SceneGame::createScene()
@@ -33,6 +38,17 @@ bool SceneGame::init()
 	//初始化地图
 	initMap(0);
 
+
+	Monster* test =(Monster*) Monster::create(new Pos(4,4));
+	test->BindSprite("TestAnim/test0.png");
+	test->BindAnimation("TestAnim/test", 5,0.1f);
+	test->SetAnimationPlay(true);
+	this->addChild(test,MOSTER_Z);
+
+	
+
+
+
 }
 
 
@@ -54,7 +70,7 @@ void SceneGame::initUI()
 {
 	//初始化panel_tower
 	{
-		Entity* panel_tower = Entity::create(Vec2(0, 1));
+		Entity* panel_tower = Entity::create(new Pos(0,1));
 		panel_tower->BindSprite("TestUI/panel_tower.png");
 		panel_tower->SetSpriteSize(Size(200, 80));
 		panel_tower->setPosition(Vec2(0, 100));
@@ -107,7 +123,7 @@ void SceneGame::initMap(int i)
 	//在GID为0的地图块添加可以点击的格子
 	for (int i = 0; i < ROWS; i++) {
 		for (int j = 0; j < COLS; j++) {
-			Vec2 pos = Vec2(i, j);
+			Pos* pos =new Pos(i, j);
 			if (GetGridIndex(pos) == 0) {
 				TowerBase* towerbase = TowerBase::create(pos, 0);
 				towerbase->BindSprite("TestSprites/tower.png");
@@ -116,13 +132,23 @@ void SceneGame::initMap(int i)
 			}
 		}
 	}
+	//获取对象层信息，添加路径节点
+	auto group_node_path = _map->getObjectGroup("path");
+	auto vec_node_path = group_node_path->getObjects();
+	int num = vec_node_path.size();
+	for (unsigned int i = 0; i < num; i++) {
+		auto node_path = vec_node_path.at(i).asValueMap();
+		float posx = node_path.at("x").asFloat();
+		float posy = node_path.at("y").asFloat();
+		log("pos%f,%f", posx, posy);
+	}
 }
 
-int SceneGame::GetGridIndex(Vec2 vec)
+int SceneGame::GetGridIndex(Pos* pos)
 {
 	auto maplayer = _map->getLayer("base");
-	Vec2 pos = Vec2(vec.x, COLS - 1 - vec.y);
-	auto tileid = maplayer->getTileGIDAt(pos);
+	Vec2 vec = Vec2(pos->GetPosx(), COLS - 1 - pos->GetPosy());
+	auto tileid = maplayer->getTileGIDAt(vec);
 	return (int)tileid-1;
 }
 

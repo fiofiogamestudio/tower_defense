@@ -1,14 +1,19 @@
 #include "ReaderJson.h"
 
-Vector<std::string> ReaderJson::LoadJsonFromFile(std::string path,std::string key)
+ValueVector ReaderJson::LoadJsonFromFile(std::string path,std::string key)
 {
-	std::string path = path;
+	ValueVector vec_info;
+
 	rapidjson::Document doc;
-	const rapidjson::Value& arr = doc[key];
+	std::string data = FileUtils::getInstance()->getStringFromFile(path);
+	doc.Parse<0>(data.c_str());
+	const rapidjson::Value& arr = doc[key.c_str()];
 	if (arr.IsArray()) {
-		for (unsigned int i = 0; i < arr.Size(); i++) {
-			const rapidjson::Value& value = arr[i];
-			log("%d", value.GetInt());
+		for (unsigned int i = 0; i < arr.Size(); ++i) {
+			const rapidjson::Value &val = arr[i];
+			log("%d", val.GetInt());
 		}
+
 	}
+	return vec_info;
 }

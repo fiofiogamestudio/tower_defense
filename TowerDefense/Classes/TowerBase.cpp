@@ -9,10 +9,10 @@ TowerBase::~TowerBase()
 {
 }
 
-TowerBase * TowerBase::create(Vec2 vec, int type)
+TowerBase * TowerBase::create(Pos* pos, int type)
 {
 	TowerBase* tower = new TowerBase();
-	if (tower&&tower->init(vec)) {
+	if (tower&&tower->init(pos)) {
 		tower->autorelease();
 	}
 	else {
