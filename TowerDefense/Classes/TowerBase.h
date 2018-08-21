@@ -6,6 +6,6 @@ private:
 public:
 	TowerBase();
 	~TowerBase();
-	static TowerBase* create(Vec2 vec, int type);
+	static TowerBase* create(Pos* pos, int type);
 	int GetTypeIndex();
 };

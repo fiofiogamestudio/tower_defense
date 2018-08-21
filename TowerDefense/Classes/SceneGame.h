@@ -1,5 +1,6 @@
 #pragma once
 #include "cocos2d.h"
+#include "Pos.h"
 #include "TowerBase.h"
 using namespace cocos2d;
 
@@ -15,6 +16,8 @@ private:
 	int index_towerbase_selected;
 
 	Node* node_UI_tower;
+
+	Vector<Pos*> vec_path;
 public:
 	void initNode();
 
@@ -24,7 +27,7 @@ public:
 
 	void initMap(int i);
 
-	int GetGridIndex(Vec2 vec);
+	int GetGridIndex(Pos* pos);
 	bool IsTowerbaseSelected(int index,Point point);
 	void DetectorVecTowebase(Point point);
 };
