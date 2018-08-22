@@ -1,5 +1,5 @@
 {
-	"information":[
+	"monster(name)":[
 		"speed",
 		"hp",
 		"offset_x of hp slider",

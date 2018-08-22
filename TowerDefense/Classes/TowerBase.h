@@ -1,7 +1,6 @@
 #pragma once
 #include "Entity.h"
 #include "Tower.h"
-#include "TowerInfo.h"
 class TowerBase :public Entity {
 private:
 	int index_type;

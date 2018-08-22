@@ -9,6 +9,7 @@ private:
 	float _timer;
 public:
 	Vec2 vec_local;
+	Vec2 vec_offset;
 	Tower();
 	~Tower();
 	static Tower* create();

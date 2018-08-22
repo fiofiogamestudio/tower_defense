@@ -39,14 +39,14 @@ bool SceneGame::init()
 	initTouch();
 	//初始化地图
 	initMap(0);
+
+	//读取怪物信息
+	LoadInfo();
 	
-	Monster*
-	test =(Monster*) Monster::createByPath(vec_path);
-	test->BindSprite("TestAnim/test0.png");
-	test->BindAnimation("TestAnim/test", 6,0.1f);
-	test->SetAnimationPlay(true);
-	this->addChild(test,MOSTER_Z);
-	vec_monster.pushBack(test);
+	//测试生成怪物
+	CreateMonster(0);
+	
+	
 
 	//绑定update函数
 	this->schedule(schedule_selector(SceneGame::update));
@@ -74,7 +74,7 @@ void SceneGame::update(float dt)
 					float distance = vec_tower.at(i)->vec_local.distance(vec_monster.at(j)->getPosition());
 					if (distance < 1000.0f) {
 						flag_fire = true;
-						dir_fire = Vec2(vec_tower.at(i)->vec_local, vec_monster.at(j)->getPosition());
+						dir_fire = Vec2(vec_tower.at(i)->vec_local+vec_tower.at(i)->vec_offset, vec_monster.at(j)->getPosition());
 						break;
 					}
 				}
@@ -234,4 +234,65 @@ void SceneGame::DetectorVecTowebase(Point point)
 	if (!flag_total) {
 		node_UI_tower->setVisible(false);
 	}
+}
+
+void SceneGame::LoadInfo()
+{
+	//载入info_monster
+	{
+		ValueVector vec_name_monster;
+		vec_name_monster.push_back(Value("bigeye"));
+
+		info_monster = Info::create(vec_name_monster, "Info/monster.json");
+		//测试输出怪物信息
+		/*{
+			ValueVector vv = info_monster->GetInfoVectorByID(0);
+			for (int i = 0; i < vv.size(); i++) {
+				log("test load info from json monster %d", vv.at(i).asInt());
+			}
+		}*/
+	}
+	
+
+	//载入info_tower
+	{
+		ValueVector vec_name_tower;
+		vec_name_tower.push_back(Value("plasma"));
+
+		info_tower = Info::create(vec_name_tower, "Info/tower.json");
+		//测试输出防御塔信息
+		/*{
+			ValueVector vv = info_tower->GetInfoVectorByID(0);
+			for (int i = 0; i < vv.size(); i++) {
+				log("test load info from json tower %d", vv.at(i).asInt());
+			}
+		}*/
+	}
+	
+	//载入info_ammo
+	{
+		ValueVector vec_name_ammo;
+		vec_name_ammo.push_back(Value("ammo_plasma"));
+
+		info_ammo = Info::create(vec_name_ammo, "Info/ammo.json");
+		//测试输出弹药信息
+		/*{
+			ValueVector vv = info_ammo->GetInfoVectorByID(0);
+			for (int i = 0; i < vv.size(); i++) {
+				log("test load info from json ammo %d", vv.at(i).asInt());
+			}
+		}*/
+	}
+}
+
+void SceneGame::CreateMonster(int type)
+{
+	Monster* test = (Monster*)Monster::createByPath(vec_path);
+	test->BindSprite("TestAnim/test0.png");
+	test->BindAnimation("TestAnim/test", 6, 0.1f);
+	test->SetAnimationPlay(true);
+	this->addChild(test, MOSTER_Z);
+	vec_monster.pushBack(test);
+	//添加血条
+	test->BindHp("TestSprites/hp.png","TestSprites/hp_bg.png");
 }

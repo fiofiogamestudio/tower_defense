@@ -5,6 +5,8 @@
 #include "Monster.h"
 #include "Tower.h"
 #include "Ammo.h"
+
+#include "Info.h"
 using namespace cocos2d;
 
 class SceneGame :public Layer {
@@ -28,6 +30,10 @@ public:
 	Vector<Tower*> vec_tower;
 
 	Vector<Ammo*> vec_ammo;
+
+	Info* info_monster;
+	Info* info_tower;
+	Info* info_ammo;
 public:
 	void initNode();
 
@@ -41,4 +47,7 @@ public:
 	bool IsTowerbaseSelected(int index,Point point);
 	void DetectorVecTowebase(Point point);
 
+	void LoadInfo();
+
+	void CreateMonster(int type);
 };

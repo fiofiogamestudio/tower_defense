@@ -26,6 +26,9 @@ Tower * Tower::create()
 
 void Tower::fire(float dt,Vec2 offset,Vec2 dir,Vector<Ammo*> &vec_ammo,Layer* scene,int order)
 {
+	//设置offset，修正子弹发射方向
+	vec_offset = offset;
+
 	_timer += dt;
 	if (_timer > _cd) {
 		_timer = 0;

@@ -1,4 +1,5 @@
 #include "Monster.h"
+#define HP_S (80);
 
 Monster::Monster()
 {
@@ -39,4 +40,17 @@ void Monster::moveByPath(float dt)
 			index_target++;
 		}
 	}
+}
+
+void Monster::BindHp(std::string path,std::string path1)
+{
+	Vec2 offset = Vec2(5, 50);
+	//ÑªÌõ
+	sprite_hp = Sprite::create(path);
+	this->addChild(sprite_hp);
+	sprite_hp->setPosition(offset);
+	//ÑªÌõ±³¾°
+	sprite_hp_bg = Sprite::create(path1);
+	this->addChild(sprite_hp_bg);
+	sprite_hp_bg->setPosition(offset);
 }

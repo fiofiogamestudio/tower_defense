@@ -12,6 +12,7 @@ ValueVector ReaderJson::LoadJsonFromFile(std::string path,std::string key)
 		for (unsigned int i = 0; i < arr.Size(); ++i) {
 			const rapidjson::Value &val = arr[i];
 			log("%d", val.GetInt());
+			vec_info.push_back(Value(val.GetInt()));
 		}
 
 	}

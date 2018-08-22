@@ -1,0 +1,9 @@
+{
+	"ammo(name)":[
+		"damage",
+		"speed"
+	],
+	"ammo_plasma":[
+		10,200
+	]
+}
