@@ -22,6 +22,7 @@ public:
 	int index_towerbase_selected;
 
 	Node* node_UI_tower;
+	Entity* panel_tower;
 
 	Vector<Pos*> vec_path;
 
@@ -32,8 +33,13 @@ public:
 	Vector<Ammo*> vec_ammo;
 
 	Info* info_monster;
+	Info* info_monster_file;
+
 	Info* info_tower;
+	Info* info_tower_file;
+
 	Info* info_ammo;
+	Info* info_ammo_file;
 public:
 	void initNode();
 
@@ -50,4 +56,7 @@ public:
 	void LoadInfo();
 
 	void CreateMonster(int type);
+
+	void CreateTower(int type);
+
 };

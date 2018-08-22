@@ -1,12 +1,14 @@
 {
 	"monster(name)":[
 		"speed",
-		"hp",
-		"offset_x of hp slider",
-		"offset_y of hp slider",
-		"index of path"
+		"hp"
 	],
-	"bigeye":[
-		100,80,5,50,0
+	"big_eye":[
+		10,
+		80
+	],
+	"small_eye":[
+		20,
+		120
 	]
 }

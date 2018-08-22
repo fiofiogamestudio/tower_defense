@@ -1,10 +1,10 @@
 {
-	"ammo(name)":[
+	"ammo_file(name)":[
 		"damage",
 		"speed"
 	],
 	"ammo_plasma":[
-		10,
-		200
+		"a",
+		"b"
 	]
 }

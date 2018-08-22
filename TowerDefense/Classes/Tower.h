@@ -14,4 +14,7 @@ public:
 	~Tower();
 	static Tower* create();
 	void fire(float dt,Vec2 offset,Vec2 dir,Vector<Ammo*> &vec_ammo,Layer* scene,int order);
+
+	//°ó¶¨×Óµ¯
+	void BindAmmoByInfo(ValueVector);
 };

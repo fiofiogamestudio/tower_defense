@@ -1,0 +1,13 @@
+{
+	"tower_file(name)":[
+		"ammo(type)",
+		"cost",
+		"cd(ms)",
+		"offset_x of hp fire",
+		"offset_y of hp fire"
+	],
+	"plasma":[
+		"a",
+		"b"
+	]
+}

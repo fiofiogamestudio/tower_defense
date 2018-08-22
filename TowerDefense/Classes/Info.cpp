@@ -16,8 +16,14 @@ Info * Info::create(ValueVector vec_name,std::string path)
 	return info;
 }
 
-ValueVector Info::GetInfoVectorByID(int index)
+ValueVector Info::GetIntInfoVectorByID(int index)
 {
 	std::string key = vec_name.at(index).asString();
-	return ReaderJson::LoadJsonFromFile(path_load, key);
+	return ReaderJson::LoadJsonIntFromFile(path_load, key);
+}
+
+ValueVector Info::GetStringInfoVectorByID(int index)
+{
+	std::string key = vec_name.at(index).asString();
+	return ReaderJson::LoadJsonStringFromFile(path_load, key);
 }

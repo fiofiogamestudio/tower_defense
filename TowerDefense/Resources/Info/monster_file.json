@@ -1,0 +1,41 @@
+{
+	"monster_file(name)":[
+		"index of path",
+		"size_x",
+		"size_y",
+		"length of animation",
+		"interval of animation(ms)",
+		"offset_x of hp",
+		"offset_y of hp",
+		"path of sprite",
+		"path of animation",
+		"path of sprite_hp",
+		"path of sprite_hp_slider"
+	],
+	"big_eye":[
+		"0",
+		"80",
+		"80",
+		"6",
+		"100",
+		"5",
+		"50",
+		"TestAnim/test0.png",
+		"TestAnim/test",
+		"TestSprites/hp.png",
+		"TestSprites/hp_bg.png"
+	],
+	"small_eye":[
+		"0",
+		"80",
+		"80",
+		"6",
+		"100",
+		"5",
+		"50",
+		"TestAnim/test0.png",
+		"TestAnim/test",
+		"TestSprites/hp.png",
+		"TestSprites/hp_bg.png"
+	]
+}

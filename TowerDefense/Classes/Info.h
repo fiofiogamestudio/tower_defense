@@ -11,5 +11,7 @@ public:
 	~Info();
 	static Info* create(ValueVector vec_name,std::string path);
 
-	ValueVector GetInfoVectorByID(int index);
+	ValueVector GetIntInfoVectorByID(int index);
+
+	ValueVector GetStringInfoVectorByID(int index);
 };

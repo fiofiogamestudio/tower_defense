@@ -3,7 +3,7 @@
 Tower::Tower()
 {
 	_atk = 0;
-	_cd = 1;
+	_cd = 2;
 	_cost = 100;
 	_timer = 0;
 }
@@ -34,7 +34,7 @@ void Tower::fire(float dt,Vec2 offset,Vec2 dir,Vector<Ammo*> &vec_ammo,Layer* sc
 		_timer = 0;
 		//·¢Éä×Óµ¯
 		{
-			log("fire");
+			//log("fire");
 			Ammo* ammo = Ammo::create(vec_local+offset);
 			ammo->BindSprite("TestSprites/ammo.png");
 			ammo->SetSpriteSize(Size(10, 10));
@@ -46,4 +46,8 @@ void Tower::fire(float dt,Vec2 offset,Vec2 dir,Vector<Ammo*> &vec_ammo,Layer* sc
 		
 
 	}
+}
+
+void Tower::BindAmmoByInfo(ValueVector)
+{
 }

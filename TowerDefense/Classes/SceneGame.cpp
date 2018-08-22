@@ -45,6 +45,7 @@ bool SceneGame::init()
 	
 	//测试生成怪物
 	CreateMonster(0);
+	CreateMonster(1);
 	
 	
 
@@ -72,7 +73,7 @@ void SceneGame::update(float dt)
 			{
 				for (int j = 0; j < vec_monster.size(); j++) {
 					float distance = vec_tower.at(i)->vec_local.distance(vec_monster.at(j)->getPosition());
-					if (distance < 1000.0f) {
+					if (distance < 300.0f) {
 						flag_fire = true;
 						dir_fire = Vec2(vec_tower.at(i)->vec_local+vec_tower.at(i)->vec_offset, vec_monster.at(j)->getPosition());
 						break;
@@ -84,11 +85,26 @@ void SceneGame::update(float dt)
 			}
 		}
 	}
-	//子弹移动
+	//子弹移动和碰撞检测
 	{
 		int num_ammo = vec_ammo.size();
 		for (int i = 0; i < num_ammo; i++) {
 			vec_ammo.at(i)->moveAmmo(dt);
+			for (int j = 0; j < vec_monster.size(); j++) {
+				bool flag_break = false;
+				if (vec_monster.at(j)->IsContains(vec_ammo.at(i)->getPosition())&&vec_ammo.at(i)->coled()) {
+					//log("hit!");
+					//结算碰撞
+					vec_monster.at(j)->TakeDamage(10);
+					flag_break == true;
+					break;
+					/*Ammo* temp = vec_ammo.at(i);
+					vec_ammo.erase(vec_ammo.begin() + i);
+					i--;
+					CC_SAFE_DELETE(temp);*/
+				}
+				if (flag_break)break;
+			}
 		}
 	}
 }
@@ -112,9 +128,11 @@ void SceneGame::initUI()
 {
 	//初始化panel_tower
 	{
-		Entity* panel_tower = Entity::create(new Pos(0,1));
-		panel_tower->BindSprite("TestUI/panel_tower.png");
+		panel_tower = Entity::create(new Pos(0,1));
+		panel_tower->BindSprite("UI/panel_tower0.png");
 		panel_tower->SetSpriteSize(Size(200, 80));
+		panel_tower->BindAnimation("UI/panel_tower", 11, 0.2f,Size(200,80));
+		panel_tower->SetAnimationPlay(true);
 		panel_tower->setPosition(Vec2(0, 100));
 		node_UI_tower->addChild(panel_tower, UI_Z);
 		node_UI_tower->setVisible(false);
@@ -122,14 +140,7 @@ void SceneGame::initUI()
 		Button* button = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
 		button->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 			if (type == ui::Widget::TouchEventType::ENDED) {
-				//这里建塔的过程
-				Tower* tower = Tower::create();
-				tower->BindSprite("TestAnim/testtower0.png");
-				tower->BindAnimation("TestAnim/testtower", 6,0.2f);
-				tower->SetAnimationPlay(true);
-				vec_towerbase.at(index_towerbase_selected)->SetTower(tower);
-				//添加到vec_towet里面
-				vec_tower.pushBack(tower);
+				CreateTower(0);
 			}
 		});
 		panel_tower->addChild(button);
@@ -151,8 +162,8 @@ void SceneGame::initTouch()
 		//点击/触摸结束时
 		Point pos = touch->getLocationInView();
 		Point point = Director::getInstance()->convertToGL(pos);
-		log("pos%f,%f", pos.x, pos.y);
-		log("point%f,%f", point.x, point.y);
+		//log("pos%f,%f", pos.x, pos.y);
+		//log("point%f,%f", point.x, point.y);
 		DetectorVecTowebase(point);
 		return true;
 	};
@@ -176,6 +187,7 @@ void SceneGame::initMap(int i)
 			if (GetGridIndex(pos) == 0) {
 				TowerBase* towerbase = TowerBase::create(pos, 0);
 				towerbase->BindSprite("TestSprites/tower.png");
+				towerbase->SetSpriteSize(Size(80, 80));
 				this->addChild(towerbase,TOWERBASE_Z);
 				vec_towerbase.pushBack(towerbase);
 			}
@@ -224,11 +236,16 @@ void SceneGame::DetectorVecTowebase(Point point)
 				node_UI_tower->setVisible(true);
 			}
 			
-			log("selected: %d",i);
+			//log("selected: %d",i);
 		}
 		else {
-			log("not selected: %d", i);
+			//log("not selected: %d", i);
 		}
+	}
+	//判断是否点击到panel_tower
+	panel_tower->SetPosFather(node_UI_tower->getPosition());
+	if (panel_tower->IsContains(point)) {
+		flag_total = true;
 	}
 	//如果不是有效点击，则执行
 	if (!flag_total) {
@@ -241,18 +258,19 @@ void SceneGame::LoadInfo()
 	//载入info_monster
 	{
 		ValueVector vec_name_monster;
-		vec_name_monster.push_back(Value("bigeye"));
+		vec_name_monster.push_back(Value("big_eye"));
+		vec_name_monster.push_back(Value("small_eye"));
 
 		info_monster = Info::create(vec_name_monster, "Info/monster.json");
-		//测试输出怪物信息
-		/*{
-			ValueVector vv = info_monster->GetInfoVectorByID(0);
-			for (int i = 0; i < vv.size(); i++) {
-				log("test load info from json monster %d", vv.at(i).asInt());
-			}
-		}*/
 	}
-	
+	//载入info_monster_file
+	{
+		ValueVector vec_name_monster_file;
+		vec_name_monster_file.push_back(Value("big_eye"));
+		vec_name_monster_file.push_back(Value("small_eye"));
+
+		info_monster_file = Info::create(vec_name_monster_file, "Info/monster_file.json");
+	}
 
 	//载入info_tower
 	{
@@ -260,13 +278,14 @@ void SceneGame::LoadInfo()
 		vec_name_tower.push_back(Value("plasma"));
 
 		info_tower = Info::create(vec_name_tower, "Info/tower.json");
-		//测试输出防御塔信息
-		/*{
-			ValueVector vv = info_tower->GetInfoVectorByID(0);
-			for (int i = 0; i < vv.size(); i++) {
-				log("test load info from json tower %d", vv.at(i).asInt());
-			}
-		}*/
+	}
+
+	//载入info_tower_file
+	{
+		ValueVector vec_name_tower_file;
+		vec_name_tower_file.push_back(Value("plasma"));
+
+		info_tower_file = Info::create(vec_name_tower_file, "Info/tower_file.json");
 	}
 	
 	//载入info_ammo
@@ -275,24 +294,75 @@ void SceneGame::LoadInfo()
 		vec_name_ammo.push_back(Value("ammo_plasma"));
 
 		info_ammo = Info::create(vec_name_ammo, "Info/ammo.json");
-		//测试输出弹药信息
-		/*{
-			ValueVector vv = info_ammo->GetInfoVectorByID(0);
-			for (int i = 0; i < vv.size(); i++) {
-				log("test load info from json ammo %d", vv.at(i).asInt());
-			}
-		}*/
+	}
+
+	//载入info_ammo_file
+	{
+		ValueVector vec_name_ammo_file;
+		vec_name_ammo_file.push_back(Value("ammo_plasma"));
+
+		info_ammo_file = Info::create(vec_name_ammo_file, "Info/ammo_file.json");
 	}
 }
 
+
 void SceneGame::CreateMonster(int type)
 {
-	Monster* test = (Monster*)Monster::createByPath(vec_path);
-	test->BindSprite("TestAnim/test0.png");
-	test->BindAnimation("TestAnim/test", 6, 0.1f);
-	test->SetAnimationPlay(true);
-	this->addChild(test, MOSTER_Z);
-	vec_monster.pushBack(test);
-	//添加血条
-	test->BindHp("TestSprites/hp.png","TestSprites/hp_bg.png");
+	ValueVector vv_monster = info_monster->GetIntInfoVectorByID(type);
+	ValueVector vv_monster_file = info_monster_file->GetStringInfoVectorByID(type);
+	//读取文件数据
+	int index_path = vv_monster_file.at(0).asInt();
+	Size size = Size(vv_monster_file.at(1).asInt(), vv_monster_file.at(2).asInt());
+	int len_animation = vv_monster_file.at(3).asInt();
+	float inter_animation = (float)vv_monster_file.at(4).asInt()/1000.0f;
+	Vec2 offset_hp = Vec2(vv_monster_file.at(5).asInt(), vv_monster_file.at(6).asInt());
+
+	std::string path_sprite = vv_monster_file.at(7).asString();
+	std::string name_animation = vv_monster_file.at(8).asString();
+	std::string path_hp = vv_monster_file.at(9).asString();
+	std::string path_hp_slider = vv_monster_file.at(10).asString();
+	//测试输出读取文件的信息
+	/*{
+		log("index_path: %d;size_x: %f;size_y: %f;", index_path, size.width, size.height);
+		log("len_animation: %d,inter_animation: %f;offset_hp_x: %f;offset_hp_y: %f", len_animation, inter_animation, offset_hp.x, offset_hp.y);
+		log("path_sprite: %s", path_sprite.c_str());
+		log("name_animation: %s", name_animation.c_str());
+		log("path_hp: %s;path_hp_slider: %s", path_hp.c_str(), path_hp_slider.c_str());
+	}*/
+
+
+	//生成
+	Monster* monster = (Monster*)Monster::createByPath(vec_path);
+	monster->BindSprite(path_sprite);
+	monster->SetSpriteSize(size);
+	monster->BindAnimation(name_animation, len_animation, inter_animation,size);
+	monster->SetAnimationPlay(true);
+	this->addChild(monster, MOSTER_Z);
+	//添加到vec_monster里面
+	vec_monster.pushBack(monster);
+
+	//绑定血条
+	monster->BindHp(path_hp,path_hp_slider,offset_hp);
+
+	//设置参数
+	monster->SetValuesByInfo(vv_monster);
 }
+
+void SceneGame::CreateTower(int type)
+{
+	ValueVector vv_tower = info_tower->GetIntInfoVectorByID(type);
+	ValueVector vv_tower_file = info_tower_file->GetStringInfoVectorByID(0);
+	//这里建塔的过程
+	Tower* tower = Tower::create();
+	tower->BindSprite("TestAnim/testtower0.png");
+	tower->BindAnimation("TestAnim/testtower", 6, 0.2f, Size(80, 80));
+	tower->SetAnimationPlay(true);
+	vec_towerbase.at(index_towerbase_selected)->SetTower(tower);
+	//添加到vec_towet里面
+	vec_tower.pushBack(tower);
+
+	//绑定子弹
+
+	
+}
+

@@ -6,5 +6,6 @@
 using namespace cocos2d;
 class ReaderJson {
 public:
-	static ValueVector LoadJsonFromFile(std::string path,std::string key);
+	static ValueVector LoadJsonIntFromFile(std::string path,std::string key);
+	static ValueVector LoadJsonStringFromFile(std::string path, std::string key);
 };

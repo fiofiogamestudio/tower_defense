@@ -5,6 +5,8 @@ Ammo::Ammo()
 	_damage = 10;
 	_speed = 100;
 	_dir = Vec2(1, 0);
+	is_delay = false;
+	is_active = true;
 }
 
 Ammo::~Ammo()
@@ -36,4 +38,15 @@ void Ammo::moveAmmo(float dt)
 	dir.normalize();
 	dir *= _speed;
 	move(dir, dt);
+}
+
+bool Ammo::coled()
+{
+	bool flag = is_active;
+	if (!is_delay) {
+		if (is_active) {
+			is_active = false;
+		}
+	}
+	return flag;
 }
