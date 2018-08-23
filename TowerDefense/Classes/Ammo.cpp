@@ -1,4 +1,5 @@
 #include "Ammo.h"
+#define LIFE_AMMO (15)
 
 Ammo::Ammo()
 {
@@ -6,7 +7,9 @@ Ammo::Ammo()
 	_speed = 100;
 	_dir = Vec2(1, 0);
 	is_delay = false;
-	is_active = true;
+
+	//启用计时器
+	timer_life = 0;
 }
 
 Ammo::~Ammo()
@@ -20,38 +23,58 @@ Ammo * Ammo::create(Vec2 vec)
 	return ammo;
 }
 
-void Ammo::SetValues(int damage, int speed,Vec2 dir)
-{
-	_damage = damage;
-	_speed = speed;
-	_dir = dir;
-}
-
 void Ammo::SetDir(Vec2 dir)
 {
 	_dir = dir;
 }
 
-void Ammo::moveAmmo(float dt)
+void Ammo::updateAmmo(float dt)
 {
 	Vec2 dir = _dir;
 	dir.normalize();
 	dir *= _speed;
 	move(dir, dt);
+	//15s之后自动销毁
+	timer_life += dt;
+	if (timer_life > (float)LIFE_AMMO) {
+		SetActive(false);
+	}
 }
 
 bool Ammo::coled()
 {
-	bool flag = is_active;
+	bool flag = GetActive();
 	if (!is_delay) {
-		if (is_active) {
-			is_active = false;
+		if (GetActive()) {
+			SetActive(false);
 		}
 	}
 	return flag;
 }
 
-bool Ammo::GetActive()
+
+int Ammo::GetDamage()
 {
-	return is_active;
+	if (!is_delay) {
+		return _damage;
+	}
+	else {
+		float t = rand_0_1();
+		if (t < (float)1/60.0f) {
+			return _damage;
+		}
+		else {
+			return 0;
+		}
+	}
+}
+
+void Ammo::SetValuesByInfo(ValueVector vv)
+{
+	bool flag = vv.at(0).asBool();
+	int damage = vv.at(1).asInt();
+	int speed = vv.at(2).asInt();
+	is_delay = flag;
+	_damage = damage;
+	_speed = speed;
 }

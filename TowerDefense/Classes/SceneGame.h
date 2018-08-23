@@ -20,9 +20,12 @@ public:
 
 	Vector<TowerBase*> vec_towerbase;
 	int index_towerbase_selected;
+	bool has_tower_towerbase_selected;
 
 	Node* node_UI_tower;
 	Entity* panel_tower;
+	Node* group_empty;
+	Node* group_nempty;
 
 	Vector<Pos*> vec_path;
 
@@ -40,6 +43,8 @@ public:
 
 	Info* info_ammo;
 	Info* info_ammo_file;
+
+	Vector<Node*> vec_todestroy;
 public:
 	void initNode();
 
@@ -58,5 +63,11 @@ public:
 	void CreateMonster(int type);
 
 	void CreateTower(int type);
+
+	void CloseAllMenu();
+
+	void OpenMenu();
+
+	void ShowTip(std::string path);
 
 };

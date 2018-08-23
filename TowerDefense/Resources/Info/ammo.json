@@ -1,10 +1,22 @@
 {
 	"ammo(name)":[
+		"is delay",
 		"damage",
 		"speed"
 	],
 	"ammo_plasma":[
-		10,
-		200
+		1,
+		1,
+		50
+	],
+	"ammo_plasma_up":[
+		1,
+		1,
+		50
+	],
+	"ammo_plasma_up_up":[
+		1,
+		1,
+		50
 	]
 }

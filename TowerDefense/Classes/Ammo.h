@@ -8,17 +8,20 @@ private:
 
 	//是否时持续伤害
 	bool is_delay;
-	//是否已经碰撞
-	bool is_active;
+
+	float timer_life;
+
 public:
 	Ammo();
 	~Ammo();
 	static Ammo* create(Vec2 vec);
-	void SetValues(int damage, int speed,Vec2 dir);
 	void SetDir(Vec2 dir);
-	void moveAmmo(float dt);
+	void updateAmmo(float dt);
 
 	//碰撞
 	bool coled();
-	bool GetActive();
+	int GetDamage();
+
+	//设置子弹数值
+	void SetValuesByInfo(ValueVector vv);
 };

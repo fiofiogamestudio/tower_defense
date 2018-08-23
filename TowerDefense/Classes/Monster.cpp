@@ -90,4 +90,7 @@ void Monster::TakeDamage(int damage)
 	hp_current -= damage;
 	hp_current = (hp_current >= 0) ? hp_current : 0;
 	RefHp();
+	if (hp_current == 0) {
+		SetActive(false);
+	}
 }

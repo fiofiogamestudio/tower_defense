@@ -22,8 +22,8 @@
 		"50",
 		"TestAnim/test0.png",
 		"TestAnim/test",
-		"TestSprites/hp.png",
-		"TestSprites/hp_bg.png"
+		"UI/hp.png",
+		"UI/hp_bg.png"
 	],
 	"small_eye":[
 		"0",
@@ -35,7 +35,7 @@
 		"50",
 		"TestAnim/test0.png",
 		"TestAnim/test",
-		"TestSprites/hp.png",
-		"TestSprites/hp_bg.png"
+		"UI/hp_huge.png",
+		"UI/hp_bg_huge.png"
 	]
 }

@@ -1,12 +1,26 @@
 {
 	"tower(name)":[
-		"ammo(type)",
-		"cost",
 		"cd(ms)",
-		"offset_x of hp fire",
-		"offset_y of hp fire"
+		"cost",
+		"offset_x of pos_attack",
+		"offset_y of pos_attack"
 	],
 	"plasma":[
-		0,100,1000,5,50
+		1000,
+		100,
+		5,
+		50
+	],
+	"plasma_up":[
+		2000,
+		50,
+		5,
+		50
+	],
+	"plasma_up_up":[
+		1000,
+		100,
+		5,
+		50
 	]
 }

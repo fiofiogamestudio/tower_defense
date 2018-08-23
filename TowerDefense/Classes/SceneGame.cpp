@@ -13,10 +13,20 @@ using namespace ui;
 #define COLS (18)
 
 #define TOWERBASE_Z (5)
+#define FUNGUS_Z (6)
 #define TOWER_Z (10)
 #define MOSTER_Z (15)
 #define AMMO_Z (16)
 #define UI_Z (20)
+#define TIP_Z (30)
+
+#define MAX_P ("Tip/max_level.png")
+
+#define TB_P ("Maps/towerbase0.png")
+#define TBA_P ("Maps/towerbase")
+
+#define FGF_P ("Maps/fungus_fat0.png")
+#define FGFA_P ("Maps/fungus_fat")
 
 Scene * SceneGame::createScene()
 {
@@ -47,7 +57,8 @@ bool SceneGame::init()
 	CreateMonster(0);
 	CreateMonster(1);
 	
-	
+	//测试显示tip
+	//ShowTip(MAX_P);
 
 	//绑定update函数
 	this->schedule(schedule_selector(SceneGame::update));
@@ -55,6 +66,7 @@ bool SceneGame::init()
 
 void SceneGame::update(float dt)
 {
+	//log("dt time: %f", dt);
 	//怪物移动
 	{
 		int num_monster = vec_monster.size();
@@ -75,13 +87,13 @@ void SceneGame::update(float dt)
 					float distance = vec_tower.at(i)->vec_local.distance(vec_monster.at(j)->getPosition());
 					if (distance < 300.0f) {
 						flag_fire = true;
-						dir_fire = Vec2(vec_tower.at(i)->vec_local+vec_tower.at(i)->vec_offset, vec_monster.at(j)->getPosition());
+						dir_fire = Vec2(vec_tower.at(i)->vec_local+vec_tower.at(i)->vec_offset_fire, vec_monster.at(j)->getPosition());
 						break;
 					}
 				}
 			}
 			if (flag_fire) {
-				vec_tower.at(i)->fire(dt, Vec2(0, 30), dir_fire, vec_ammo, this, AMMO_Z);
+				vec_tower.at(i)->fire(dt, dir_fire, vec_ammo, this, AMMO_Z);
 			}
 		}
 	}
@@ -89,13 +101,13 @@ void SceneGame::update(float dt)
 	{
 		int num_ammo = vec_ammo.size();
 		for (int i = 0; i < num_ammo; i++) {
-			vec_ammo.at(i)->moveAmmo(dt);
+			vec_ammo.at(i)->updateAmmo(dt);
 			for (int j = 0; j < vec_monster.size(); j++) {
 				bool flag_break = false;
 				if (vec_monster.at(j)->IsContains(vec_ammo.at(i)->getPosition())&&vec_ammo.at(i)->coled()) {
 					//log("hit!");
 					//结算碰撞
-					vec_monster.at(j)->TakeDamage(10);
+					vec_monster.at(j)->TakeDamage(vec_ammo.at(i)->GetDamage());
 					flag_break == true;
 					break;
 				}
@@ -109,6 +121,26 @@ void SceneGame::update(float dt)
 			if (!vec_ammo.at(i)->GetActive()) {
 				Ammo* temp = vec_ammo.at(i);
 				vec_ammo.erase(vec_ammo.begin() + i);
+				temp->removeFromParent();
+			}
+		}
+	}
+	//销毁死亡的怪物
+	{
+		for (int i = 0; i < vec_monster.size(); i++) {
+			if (!vec_monster.at(i)->GetActive()) {
+				Monster* temp = vec_monster.at(i);
+				vec_monster.erase(vec_monster.begin() + i);
+				temp->removeFromParent();
+			}
+		}
+	}
+	//销毁被拆除的塔
+	{
+		for (int i = 0; i < vec_tower.size(); i++) {
+			if (!vec_tower.at(i)->GetActive()) {
+				Tower* temp = vec_tower.at(i);
+				vec_tower.erase(vec_tower.begin() + i);
 				temp->removeFromParent();
 			}
 		}
@@ -143,13 +175,85 @@ void SceneGame::initUI()
 		node_UI_tower->addChild(panel_tower, UI_Z);
 		node_UI_tower->setVisible(false);
 		
-		Button* button = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
-		button->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
-			if (type == ui::Widget::TouchEventType::ENDED) {
-				CreateTower(0);
-			}
-		});
-		panel_tower->addChild(button);
+		group_empty = Node::create();
+		panel_tower->addChild(group_empty);
+		group_empty->setVisible(false);
+
+		group_nempty = Node::create();
+		panel_tower->addChild(group_nempty);
+		group_nempty->setVisible(false);
+
+		//空白地块的UI
+			{
+			Button* button_build = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+			button_build->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+				if (type == ui::Widget::TouchEventType::ENDED) {
+					CreateTower(0);
+					CloseAllMenu();
+				}
+			});
+			button_build->setPosition(Vec2(-50, 0));
+			group_empty->addChild(button_build);
+
+			Button* button_build1 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+			button_build1->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+				if (type == ui::Widget::TouchEventType::ENDED) {
+					CreateTower(0);
+					CloseAllMenu();
+				}
+			});
+			button_build1->setPosition(Vec2(0, 0));
+			group_empty->addChild(button_build1);
+
+			Button* button_build2 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+			button_build2->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+				if (type == ui::Widget::TouchEventType::ENDED) {
+					CreateTower(0);
+					CloseAllMenu();
+				}
+			});
+			button_build2->setPosition(Vec2(50, 0));
+			group_empty->addChild(button_build2);
+
+		}
+		//升级和拆除的UI
+		{
+			Button* button_upgrade=Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+			button_upgrade->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+				if (type == ui::Widget::TouchEventType::ENDED) {
+					//升级
+					{
+						//先拆除旧塔 再建一个升级版本的塔						
+						//log("type of tower to upgrade is: %d", vec_towerbase.at(index_towerbase_selected)->GetTypeIndex());
+						int type_upgrade = vec_towerbase.at(index_towerbase_selected)->GetTypeIndex()+1;
+						if (type_upgrade % 3 != 0) {
+							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+							CreateTower(type_upgrade);
+						}
+						else {
+							//log("tower max level!");
+							ShowTip(MAX_P);
+						}
+						
+					}
+					CloseAllMenu();
+				}
+			});
+			button_upgrade->setPosition(Vec2(-30, 0));
+			group_nempty->addChild(button_upgrade);
+			Button* button_destroy = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+			button_destroy->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+				if (type == ui::Widget::TouchEventType::ENDED) {
+					//拆除
+					vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+					CloseAllMenu();
+				}
+			});
+			button_destroy->setPosition(Vec2(30, 0));
+			group_nempty->addChild(button_destroy);
+		}
+		
+		
 	}
 }
 
@@ -187,7 +291,7 @@ void SceneGame::initMap(int i)
 	_map = TMXTiledMap::create(path);
 	this->addChild(_map);
 	//在GID为0的地图块添加可以点击的格子
-	for (int i = 0; i < ROWS; i++) {
+	/*for (int i = 0; i < ROWS; i++) {
 		for (int j = 0; j < COLS; j++) {
 			Pos* pos =new Pos(i, j);
 			if (GetGridIndex(pos) == 0) {
@@ -198,16 +302,55 @@ void SceneGame::initMap(int i)
 				vec_towerbase.pushBack(towerbase);
 			}
 		}
+	}*/
+	//获取对象层信息，添加可以点击的格子
+	{
+		auto group_node_towerbase = _map->getObjectGroup("towerbase");
+		auto vec_node_towerbase = group_node_towerbase->getObjects();
+		int num = vec_node_towerbase.size();
+		for (unsigned int i = 0; i < num; i++) {
+			auto node_towerbase = vec_node_towerbase.at(i).asValueMap();
+			float posx = node_towerbase.at("x").asFloat();
+			float posy = node_towerbase.at("y").asFloat();
+			TowerBase* towerbase = TowerBase::create(new Pos(posx, posy));
+			towerbase->BindSprite(TB_P);
+			towerbase->SetSpriteSize(Size(80, 80));
+			towerbase->BindAnimation(TBA_P, 7, 0.1f,Size(80,80));
+			towerbase->SetAnimationPlay(true);
+			this->addChild(towerbase, TOWERBASE_Z);
+			vec_towerbase.pushBack(towerbase);
+		}
 	}
+
+	//获取对象层信息，添加fungus_fat
+	{
+		auto group_node_fgf = _map->getObjectGroup("fungus_fat");
+		auto vec_node_fgf = group_node_fgf->getObjects();
+		int num = vec_node_fgf.size();
+		for (unsigned int i = 0; i < num; i++) {
+			auto node_fgf = vec_node_fgf.at(i).asValueMap();
+			float posx = node_fgf.at("x").asFloat();
+			float posy = node_fgf.at("y").asFloat();
+			Entity* fgf = Entity::create(new Pos(posx, posy));
+			fgf->BindSprite(FGF_P);
+			fgf->SetSpriteSize(Size(40, 40));
+			fgf->BindAnimation(FGFA_P, 6, 0.2f, Size(40, 40));
+			fgf->SetAnimationPlay(true);
+			this->addChild(fgf, FUNGUS_Z);
+		}
+	}
+	
 	//获取对象层信息，添加路径节点
-	auto group_node_path = _map->getObjectGroup("path");
-	auto vec_node_path = group_node_path->getObjects();
-	int num = vec_node_path.size();
-	for (unsigned int i = 0; i < num; i++) {
-		auto node_path = vec_node_path.at(i).asValueMap();
-		float posx = node_path.at("x").asFloat();
-		float posy = node_path.at("y").asFloat();
-		vec_path.pushBack(new Pos(posx, posy));
+	{
+		auto group_node_path = _map->getObjectGroup("path");
+		auto vec_node_path = group_node_path->getObjects();
+		int num = vec_node_path.size();
+		for (unsigned int i = 0; i < num; i++) {
+			auto node_path = vec_node_path.at(i).asValueMap();
+			float posx = node_path.at("x").asFloat();
+			float posy = node_path.at("y").asFloat();
+			vec_path.pushBack(new Pos(posx, posy));
+		}
 	}
 }
 
@@ -239,13 +382,23 @@ void SceneGame::DetectorVecTowebase(Point point)
 			{
 				Vec2 pos = vec_towerbase.at(i)->getPosition();
 				node_UI_tower->setPosition(pos);
-				node_UI_tower->setVisible(true);
+
+				//log("selected: %d",i);
+				//是否有塔
+				has_tower_towerbase_selected = vec_towerbase.at(i)->HasTower();
+				if (has_tower_towerbase_selected) {
+					log("selected towerbase has tower!");
+				}
+				else {
+					log("selected towerbase doesn't have tower!");
+				}
+
+				OpenMenu();
 			}
 			
-			//log("selected: %d",i);
 		}
 		else {
-			//log("not selected: %d", i);
+			log("not selected: %d", i);
 		}
 	}
 	//判断是否点击到panel_tower
@@ -255,7 +408,7 @@ void SceneGame::DetectorVecTowebase(Point point)
 	}
 	//如果不是有效点击，则执行
 	if (!flag_total) {
-		node_UI_tower->setVisible(false);
+		CloseAllMenu();
 	}
 }
 
@@ -282,6 +435,8 @@ void SceneGame::LoadInfo()
 	{
 		ValueVector vec_name_tower;
 		vec_name_tower.push_back(Value("plasma"));
+		vec_name_tower.push_back(Value("plasma_up"));
+		vec_name_tower.push_back(Value("plasma_up_up"));
 
 		info_tower = Info::create(vec_name_tower, "Info/tower.json");
 	}
@@ -290,6 +445,8 @@ void SceneGame::LoadInfo()
 	{
 		ValueVector vec_name_tower_file;
 		vec_name_tower_file.push_back(Value("plasma"));
+		vec_name_tower_file.push_back(Value("plasma_up"));
+		vec_name_tower_file.push_back(Value("plasma_up_up"));
 
 		info_tower_file = Info::create(vec_name_tower_file, "Info/tower_file.json");
 	}
@@ -298,6 +455,8 @@ void SceneGame::LoadInfo()
 	{
 		ValueVector vec_name_ammo;
 		vec_name_ammo.push_back(Value("ammo_plasma"));
+		vec_name_ammo.push_back(Value("ammo_plasma_up"));
+		vec_name_ammo.push_back(Value("ammo_plasma_up_up"));
 
 		info_ammo = Info::create(vec_name_ammo, "Info/ammo.json");
 	}
@@ -306,6 +465,9 @@ void SceneGame::LoadInfo()
 	{
 		ValueVector vec_name_ammo_file;
 		vec_name_ammo_file.push_back(Value("ammo_plasma"));
+		vec_name_ammo_file.push_back(Value("ammo_plasma_up"));
+		vec_name_ammo_file.push_back(Value("ammo_plasma_up_up"));
+
 
 		info_ammo_file = Info::create(vec_name_ammo_file, "Info/ammo_file.json");
 	}
@@ -357,7 +519,7 @@ void SceneGame::CreateMonster(int type)
 void SceneGame::CreateTower(int type)
 {
 	ValueVector vv_tower = info_tower->GetIntInfoVectorByID(type);
-	ValueVector vv_tower_file = info_tower_file->GetStringInfoVectorByID(0);
+	ValueVector vv_tower_file = info_tower_file->GetStringInfoVectorByID(type);
 	//读取文件数据
 	Size size = Size(vv_tower_file.at(0).asInt(), vv_tower_file.at(1).asInt());
 	int len_animation = vv_tower_file.at(2).asInt();
@@ -376,12 +538,48 @@ void SceneGame::CreateTower(int type)
 	tower->BindSprite(path_sprite);
 	tower->BindAnimation(name_animation, len_animation, inter_animation, size);
 	tower->SetAnimationPlay(true);
-	vec_towerbase.at(index_towerbase_selected)->SetTower(tower);
+	vec_towerbase.at(index_towerbase_selected)->SetTower(tower,type);
 	//添加到vec_towet里面
 	vec_tower.pushBack(tower);
 
 	//绑定子弹
-
+	ValueVector vv_ammo = info_ammo->GetIntInfoVectorByID(type);
+	ValueVector vv_ammo_file = info_ammo_file->GetStringInfoVectorByID(type);
+	tower->BindAmmoByInfo(vv_ammo, vv_ammo_file);
+	//设置参数
+	tower->SetValuesByInfo(vv_tower);
 	
+}
+
+void SceneGame::CloseAllMenu()
+{
+	node_UI_tower->setVisible(false);
+	group_empty->setVisible(false);
+	group_nempty->setVisible(false);
+}
+
+void SceneGame::OpenMenu()
+{
+	node_UI_tower->setVisible(true);
+	if (has_tower_towerbase_selected) {
+		group_nempty->setVisible(true);
+	}
+	else {
+		group_empty->setVisible(true);
+	}
+}
+
+void SceneGame::ShowTip(std::string path)
+{
+	auto tip = Sprite::create(path);
+	Size size = Director::getInstance()->getVisibleSize();
+	tip->setPosition(Vec2(size.width/2,size.height/2+50));
+	this->addChild(tip, TIP_Z);
+	auto scaleto = ScaleTo::create(0.3f, 1.1f);
+	auto fadein = FadeOut::create(0.7f);
+	auto seq = Sequence::create(scaleto, fadein, CallFuncN::create([&](Node* sender) {
+		sender->removeFromParent();
+	}), nullptr);
+	tip->runAction(seq);
 }
 

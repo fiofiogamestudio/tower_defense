@@ -10,6 +10,8 @@ private:
 	Animate* _anim;
 
 	Vec2 pos_father;
+
+	bool is_active;
 public:
 	Entity();
 	~Entity();
@@ -26,4 +28,7 @@ public:
 	void move(Vec2 dir, float dt);
 	//设置父节点的坐标
 	void SetPosFather(Vec2 pos);
+	//封装active
+	void SetActive(bool active);
+	bool GetActive();
 };

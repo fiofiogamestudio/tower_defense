@@ -5,6 +5,8 @@ Entity::Entity()
 	_pos = Vec2(0, 0);
 
 	pos_father = Vec2(0, 0);
+
+	is_active = true;
 }
 
 Entity::~Entity()
@@ -93,4 +95,14 @@ void Entity::move(Vec2 dir, float dt)
 void Entity::SetPosFather(Vec2 pos)
 {
 	pos_father = pos;
+}
+
+void Entity::SetActive(bool active)
+{
+	is_active = active;
+}
+
+bool Entity::GetActive()
+{
+	return is_active;
 }
