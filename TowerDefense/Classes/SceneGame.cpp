@@ -98,12 +98,18 @@ void SceneGame::update(float dt)
 					vec_monster.at(j)->TakeDamage(10);
 					flag_break == true;
 					break;
-					/*Ammo* temp = vec_ammo.at(i);
-					vec_ammo.erase(vec_ammo.begin() + i);
-					i--;
-					CC_SAFE_DELETE(temp);*/
 				}
 				if (flag_break)break;
+			}
+		}
+	}
+	//销毁失活的子弹
+	{
+		for (int i = 0; i < vec_ammo.size(); i++) {
+			if (!vec_ammo.at(i)->GetActive()) {
+				Ammo* temp = vec_ammo.at(i);
+				vec_ammo.erase(vec_ammo.begin() + i);
+				temp->removeFromParent();
 			}
 		}
 	}
@@ -352,10 +358,23 @@ void SceneGame::CreateTower(int type)
 {
 	ValueVector vv_tower = info_tower->GetIntInfoVectorByID(type);
 	ValueVector vv_tower_file = info_tower_file->GetStringInfoVectorByID(0);
+	//读取文件数据
+	Size size = Size(vv_tower_file.at(0).asInt(), vv_tower_file.at(1).asInt());
+	int len_animation = vv_tower_file.at(2).asInt();
+	float inter_animation = (float)vv_tower_file.at(3).asInt() / 1000.0f;
+	std::string path_sprite = vv_tower_file.at(4).asString();
+	std::string name_animation = vv_tower_file.at(5).asString();
+	//测试输出读取文件的信息
+	{
+		log("size_x: %f;size_y: %f;", size.width, size.height);
+		log("len_animation: %d,inter_animation: %f;", len_animation, inter_animation);
+		log("path_sprite: %s", path_sprite.c_str());
+		log("name_animation: %s", name_animation.c_str());
+	}
 	//这里建塔的过程
 	Tower* tower = Tower::create();
-	tower->BindSprite("TestAnim/testtower0.png");
-	tower->BindAnimation("TestAnim/testtower", 6, 0.2f, Size(80, 80));
+	tower->BindSprite(path_sprite);
+	tower->BindAnimation(name_animation, len_animation, inter_animation, size);
 	tower->SetAnimationPlay(true);
 	vec_towerbase.at(index_towerbase_selected)->SetTower(tower);
 	//添加到vec_towet里面

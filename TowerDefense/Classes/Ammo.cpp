@@ -50,3 +50,8 @@ bool Ammo::coled()
 	}
 	return flag;
 }
+
+bool Ammo::GetActive()
+{
+	return is_active;
+}

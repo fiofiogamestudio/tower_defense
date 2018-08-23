@@ -20,4 +20,5 @@ public:
 
 	//Åö×²
 	bool coled();
+	bool GetActive();
 };

@@ -1,13 +1,18 @@
 {
 	"tower_file(name)":[
-		"ammo(type)",
-		"cost",
-		"cd(ms)",
-		"offset_x of hp fire",
-		"offset_y of hp fire"
+		"size_x",
+		"size_y",
+		"length of animation",
+		"interval of animation(ms)",
+		"path of sprite",
+		"name of animation"
 	],
 	"plasma":[
-		"a",
-		"b"
+		"80",
+		"80",
+		"6",
+		"200",
+		"Sprites/plasma0.png",
+		"Sprites/plasma"
 	]
 }
