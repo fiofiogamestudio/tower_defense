@@ -9,7 +9,7 @@
 	],
 	"plasma":[
 		"80",
-		"80",
+		"120",
 		"6",
 		"200",
 		"Sprites/Tower/plasma0.png",
@@ -17,7 +17,7 @@
 	],
 	"plasma_up":[
 		"80",
-		"80",
+		"110",
 		"10",
 		"200",
 		"Sprites/Tower/plasma_up0.png",
@@ -25,11 +25,11 @@
 	],
 	"plasma_up_up":[
 		"80",
-		"80",
-		"6",
+		"120",
+		"10",
 		"200",
-		"Sprites/Tower/plasma0.png",
-		"Sprites/Tower/plasma"
+		"Sprites/Tower/plasma_up_up0.png",
+		"Sprites/Tower/plasma_up_up"
 	]
 	
 }

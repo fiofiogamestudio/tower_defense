@@ -5,18 +5,18 @@
 		"speed"
 	],
 	"ammo_plasma":[
-		1,
-		1,
+		0,
+		10,
 		50
 	],
 	"ammo_plasma_up":[
-		1,
-		1,
+		0,
+		10,
 		50
 	],
 	"ammo_plasma_up_up":[
-		1,
-		1,
+		0,
+		10,
 		50
 	]
 }

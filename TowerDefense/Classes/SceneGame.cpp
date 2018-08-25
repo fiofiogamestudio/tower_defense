@@ -17,9 +17,18 @@ using namespace ui;
 #define TOWER_Z (10)
 #define MOSTER_Z (15)
 #define AMMO_Z (16)
+#define ANIM_Z (18)
+
+//子弹时间的时候添加遮罩
+#define MASK_Z (19)
+#define MASK_P ("UI/mask.png")
+
 #define UI_Z (20)
 #define TIP_Z (30)
 
+#define MONEY_P ("UI/money.png")
+#define CORE_P ("UI/core.png")
+#define WAVE_P ("UI/wave.png")
 #define MAX_P ("Tip/max_level.png")
 
 #define TB_P ("Maps/towerbase0.png")
@@ -27,6 +36,12 @@ using namespace ui;
 
 #define FGF_P ("Maps/fungus_fat0.png")
 #define FGFA_P ("Maps/fungus_fat")
+
+#define ICON_N ("UI/icon_tower")
+#define BOOM_N ("Anim/boom")
+
+#define AIRSHIP_P ("Maps/airship0.png")
+#define AIRSHIPA_N ("Maps/airship")
 
 Scene * SceneGame::createScene()
 {
@@ -48,17 +63,22 @@ bool SceneGame::init()
 	//初始化点击/触摸控制器
 	initTouch();
 	//初始化地图
-	initMap(0);
+	initMap(DataManager::level_current);
 
 	//读取怪物信息
 	LoadInfo();
 	
 	//测试生成怪物
-	CreateMonster(0);
-	CreateMonster(1);
+	//CreateMonster(0);
+	//CreateMonster(1);
+	//CreateMonster(2);
+	CreateMonster(3);
 	
 	//测试显示tip
 	//ShowTip(MAX_P);
+
+	//测试显示怪物死亡动画特效
+	//ShowAnimation(BOOM_N, 7, 0.1f, Size(160, 160), Vec2(100, 100));
 
 	//绑定update函数
 	this->schedule(schedule_selector(SceneGame::update));
@@ -130,6 +150,10 @@ void SceneGame::update(float dt)
 		for (int i = 0; i < vec_monster.size(); i++) {
 			if (!vec_monster.at(i)->GetActive()) {
 				Monster* temp = vec_monster.at(i);
+				//死亡动画
+				{
+					ShowAnimation(BOOM_N, 7, 0.08f, Size(160, 160), temp->getPosition());
+				}
 				vec_monster.erase(vec_monster.begin() + i);
 				temp->removeFromParent();
 			}
@@ -144,6 +168,22 @@ void SceneGame::update(float dt)
 				temp->removeFromParent();
 			}
 		}
+	}
+	//销毁被手动加入销毁列表的物体
+	{
+		//先执行计时器
+		for (int i = 0; i < vec_todestroy.size(); i++) {
+			vec_todestroy.at(i)->updateLife(dt);
+		}
+		//然后执行销毁
+		for (int i = 0; i < vec_todestroy.size(); i++) {
+			if (!vec_todestroy.at(i)->GetActive()) {
+				Entity* temp = vec_todestroy.at(i);
+				vec_todestroy.erase(vec_todestroy.begin() + i);
+				temp->removeFromParent();
+			}
+		}
+		//log("size of vec_todestroy is %d", vec_todestroy.size());
 	}
 }
 
@@ -164,6 +204,20 @@ void SceneGame::initNode()
 
 void SceneGame::initUI()
 {
+	//初始化上面的UI
+	{
+		Sprite* ui_money = Sprite::create(MONEY_P);
+		ui_money->setPosition(Vec2(100, 660));
+		this->addChild(ui_money,UI_Z);
+
+		Sprite* ui_core = Sprite::create(CORE_P);
+		ui_core->setPosition(Vec2(250, 660));
+		this->addChild(ui_core,UI_Z);
+
+		Sprite* ui_wave = Sprite::create(WAVE_P);
+		ui_wave->setPosition(Vec2(1000, 660));
+		this->addChild(ui_wave, UI_Z);
+	}
 	//初始化panel_tower
 	{
 		panel_tower = Entity::create(new Pos(0,1));
@@ -183,9 +237,18 @@ void SceneGame::initUI()
 		panel_tower->addChild(group_nempty);
 		group_nempty->setVisible(false);
 
+		group_nempty1 = Node::create();
+		panel_tower->addChild(group_nempty1);
+		group_nempty1->setVisible(false);
+
+		group_nempty2 = Node::create();
+		panel_tower->addChild(group_nempty2);
+		group_nempty2->setVisible(false);
+
 		//空白地块的UI
 			{
-			Button* button_build = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+			std::string path_build = String::createWithFormat("%s%d.png", ICON_N, 0)->getCString();
+			Button* button_build = Button::create(path_build, path_build, path_build);
 			button_build->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
 					CreateTower(0);
@@ -195,7 +258,8 @@ void SceneGame::initUI()
 			button_build->setPosition(Vec2(-50, 0));
 			group_empty->addChild(button_build);
 
-			Button* button_build1 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+			std::string path_build1 = String::createWithFormat("%s%d.png", ICON_N, 1)->getCString();
+			Button* button_build1 = Button::create(path_build1, path_build1, path_build1);
 			button_build1->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
 					CreateTower(0);
@@ -205,7 +269,8 @@ void SceneGame::initUI()
 			button_build1->setPosition(Vec2(0, 0));
 			group_empty->addChild(button_build1);
 
-			Button* button_build2 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+			std::string path_build2 = String::createWithFormat("%s%d.png", ICON_N, 2)->getCString();
+			Button* button_build2 = Button::create(path_build2, path_build2, path_build2);
 			button_build2->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
 					CreateTower(0);
@@ -218,42 +283,144 @@ void SceneGame::initUI()
 		}
 		//升级和拆除的UI
 		{
-			Button* button_upgrade=Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
-			button_upgrade->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+			//升级的UI要按照塔来分类
+			//一类塔的升级UI
+			{
+				std::string path_upgrade1 = String::createWithFormat("%s%d.png", ICON_N, 1)->getCString();
+				Button* button_upgrade1 = Button::create(path_upgrade1, path_upgrade1, path_upgrade1);
+				button_upgrade1->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						//升级
+						{
+							log("upgrade to tower1");
+						}
+						CloseAllMenu();
+					}
+				});
+				button_upgrade1->setPosition(Vec2(-50, 0));
+				group_nempty->addChild(button_upgrade1);
+
+				std::string path_upgrade2 = String::createWithFormat("%s%d.png", ICON_N, 2)->getCString();
+				Button* button_upgrade2 = Button::create(path_upgrade2, path_upgrade2, path_upgrade2);
+				button_upgrade2->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						//升级
+						{
+							log("upgrade to tower2");
+
+						}
+						CloseAllMenu();
+					}
+				});
+				button_upgrade2->setPosition(Vec2(0, 0));
+				group_nempty->addChild(button_upgrade2);
+			}
+//二类塔的升级UI
+			{
+			std::string path_upgrade4 = String::createWithFormat("%s%d.png", ICON_N, 1)->getCString();
+			Button* button_upgrade4 = Button::create(path_upgrade4, path_upgrade4, path_upgrade4);
+			button_upgrade4->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
 					//升级
 					{
-						//先拆除旧塔 再建一个升级版本的塔						
-						//log("type of tower to upgrade is: %d", vec_towerbase.at(index_towerbase_selected)->GetTypeIndex());
-						int type_upgrade = vec_towerbase.at(index_towerbase_selected)->GetTypeIndex()+1;
-						if (type_upgrade % 3 != 0) {
-							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
-							CreateTower(type_upgrade);
-						}
-						else {
-							//log("tower max level!");
-							ShowTip(MAX_P);
-						}
-						
+						log("upgrade to tower4");
 					}
 					CloseAllMenu();
 				}
 			});
-			button_upgrade->setPosition(Vec2(-30, 0));
-			group_nempty->addChild(button_upgrade);
-			Button* button_destroy = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
-			button_destroy->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+			button_upgrade4->setPosition(Vec2(-50, 0));
+			group_nempty1->addChild(button_upgrade4);
+
+			std::string path_upgrade5 = String::createWithFormat("%s%d.png", ICON_N, 2)->getCString();
+			Button* button_upgrade5 = Button::create(path_upgrade5, path_upgrade5, path_upgrade5);
+			button_upgrade5->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
-					//拆除
-					vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+					//升级
+					{
+						log("upgrade to tower5");
+					}
 					CloseAllMenu();
 				}
 			});
-			button_destroy->setPosition(Vec2(30, 0));
-			group_nempty->addChild(button_destroy);
+			button_upgrade5->setPosition(Vec2(0, 0));
+			group_nempty1->addChild(button_upgrade5);
+			}
+			//三类塔的升级UI
+			{
+				std::string path_upgrade7 = String::createWithFormat("%s%d.png", ICON_N, 1)->getCString();
+				Button* button_upgrade7 = Button::create(path_upgrade7, path_upgrade7, path_upgrade7);
+				button_upgrade7->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						//升级
+						{
+							log("upgrade to tower7");
+						}
+						CloseAllMenu();
+					}
+				});
+				button_upgrade7->setPosition(Vec2(-50, 0));
+				group_nempty2->addChild(button_upgrade7);
+
+				std::string path_upgrade8 = String::createWithFormat("%s%d.png", ICON_N, 2)->getCString();
+				Button* button_upgrade8 = Button::create(path_upgrade8, path_upgrade8, path_upgrade8);
+				button_upgrade8->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						//升级
+						{
+							log("upgrade to tower8");
+						}
+						CloseAllMenu();
+					}
+				});
+				button_upgrade8->setPosition(Vec2(0, 0));
+				group_nempty2->addChild(button_upgrade8);
+			}
+
+			//这里代码可以复用，但是懒得再加节点了
+			{
+				Button* button_destroy = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+				button_destroy->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						//拆除
+						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						CloseAllMenu();
+					}
+				});
+				button_destroy->setPosition(Vec2(50, 0));
+				group_nempty->addChild(button_destroy);
+
+				Button* button_destroy1 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+				button_destroy1->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						//拆除
+						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						CloseAllMenu();
+					}
+				});
+				button_destroy1->setPosition(Vec2(50, 0));
+				group_nempty1->addChild(button_destroy1);
+
+				Button* button_destroy2 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+				button_destroy2->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						//拆除
+						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						CloseAllMenu();
+					}
+				});
+				button_destroy2->setPosition(Vec2(50, 0));
+				group_nempty2->addChild(button_destroy2);
+			}
+
 		}
-		
-		
+	}
+	//初始化mask
+	{
+		_mask = Sprite::create(MASK_P);
+		this->addChild(_mask, MASK_Z);
+		Size size = Director::getInstance()->getVisibleSize();
+		_mask->setContentSize(size*2);
+		_mask->setVisible(false);
 	}
 }
 
@@ -322,9 +489,9 @@ void SceneGame::initMap(int i)
 		}
 	}
 
-	//获取对象层信息，添加fungus_fat
+	//获取对象层信息，添加fungus
 	{
-		auto group_node_fgf = _map->getObjectGroup("fungus_fat");
+		auto group_node_fgf = _map->getObjectGroup("fungus");
 		auto vec_node_fgf = group_node_fgf->getObjects();
 		int num = vec_node_fgf.size();
 		for (unsigned int i = 0; i < num; i++) {
@@ -337,6 +504,23 @@ void SceneGame::initMap(int i)
 			fgf->BindAnimation(FGFA_P, 6, 0.2f, Size(40, 40));
 			fgf->SetAnimationPlay(true);
 			this->addChild(fgf, FUNGUS_Z);
+		}
+	}
+	//获取对象层信息，添加飞船
+	{
+		auto group_node_airship = _map->getObjectGroup("airship");
+		auto vec_node_airship = group_node_airship->getObjects();
+		int num = vec_node_airship.size();
+		for (unsigned int i = 0; i < num; i++) {
+			auto node_fgf = vec_node_airship.at(i).asValueMap();
+			float posx = node_fgf.at("x").asFloat();
+			float posy = node_fgf.at("y").asFloat();
+			Entity* fgf = Entity::create(new Pos(posx, posy));
+			fgf->BindSprite(AIRSHIP_P);
+			fgf->SetSpriteSize(Size(40, 40));
+			fgf->BindAnimation(AIRSHIPA_N, 6, 0.15f, Size(80, 80));
+			fgf->SetAnimationPlay(true);
+			this->addChild(fgf, TOWER_Z);
 		}
 	}
 	
@@ -393,7 +577,7 @@ void SceneGame::DetectorVecTowebase(Point point)
 					log("selected towerbase doesn't have tower!");
 				}
 
-				OpenMenu();
+				OpenMenu(vec_towerbase.at(i)->GetTypeIndex());
 			}
 			
 		}
@@ -419,6 +603,8 @@ void SceneGame::LoadInfo()
 		ValueVector vec_name_monster;
 		vec_name_monster.push_back(Value("big_eye"));
 		vec_name_monster.push_back(Value("small_eye"));
+		vec_name_monster.push_back(Value("many_legs"));
+		vec_name_monster.push_back(Value("few_legs"));
 
 		info_monster = Info::create(vec_name_monster, "Info/monster.json");
 	}
@@ -427,6 +613,8 @@ void SceneGame::LoadInfo()
 		ValueVector vec_name_monster_file;
 		vec_name_monster_file.push_back(Value("big_eye"));
 		vec_name_monster_file.push_back(Value("small_eye"));
+		vec_name_monster_file.push_back(Value("many_legs"));
+		vec_name_monster_file.push_back(Value("few_legs"));
 
 		info_monster_file = Info::create(vec_name_monster_file, "Info/monster_file.json");
 	}
@@ -553,16 +741,43 @@ void SceneGame::CreateTower(int type)
 
 void SceneGame::CloseAllMenu()
 {
+	//关闭菜单时恢复正常的时间流速
+	{
+		Director::getInstance()->getScheduler()->setTimeScale(1.0f);
+		_mask->setVisible(false);
+	}
 	node_UI_tower->setVisible(false);
 	group_empty->setVisible(false);
 	group_nempty->setVisible(false);
+	group_nempty1->setVisible(false);
+	group_nempty2->setVisible(false);
 }
 
-void SceneGame::OpenMenu()
+void SceneGame::OpenMenu(int index)
 {
+	//打开菜单时添加时间减缓效果
+	{
+		Director::getInstance()->getScheduler()->setTimeScale(0.1f);
+		_mask->setVisible(true);
+	}
 	node_UI_tower->setVisible(true);
 	if (has_tower_towerbase_selected) {
-		group_nempty->setVisible(true);
+		log("index of open_menu is: %d", index);
+		switch (index)
+		{
+		case 0:
+			group_nempty->setVisible(true);
+			break;
+		case 1:
+			group_nempty1->setVisible(true);
+			break;
+		case 2:
+			group_nempty2->setVisible(true);
+			break;
+		default:
+			log("error index to open_menu!");
+			break;
+		}
 	}
 	else {
 		group_empty->setVisible(true);
@@ -581,5 +796,20 @@ void SceneGame::ShowTip(std::string path)
 		sender->removeFromParent();
 	}), nullptr);
 	tip->runAction(seq);
+}
+
+void SceneGame::ShowAnimation(std::string path,int len,float time,Size size,Vec2 pos)
+{
+	std::string path_sprite = String::createWithFormat("%s0.png", path.c_str())->getCString();
+	log("path of sprite is: %s;name of animation is: %s", path_sprite.c_str(), path.c_str());
+	Entity* animation = Entity::create(new Pos(0, 0));
+	animation->setPosition(pos);
+	animation->BindSprite(path_sprite);
+	animation->BindAnimation(path, len, time, size);
+	animation->SetAnimationPlay(true,true);
+	this->addChild(animation, ANIM_Z);
+	//动作序列只能销毁Sprite，Sprite销毁了但是Entity还没有被销毁，所以这里只能手动销毁Entity
+	vec_todestroy.pushBack(animation);
+	animation->Destroy(3.0f);
 }
 

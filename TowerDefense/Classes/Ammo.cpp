@@ -1,5 +1,5 @@
 #include "Ammo.h"
-#define LIFE_AMMO (15)
+#define LIFE_MAX (15)
 
 Ammo::Ammo()
 {
@@ -36,7 +36,7 @@ void Ammo::updateAmmo(float dt)
 	move(dir, dt);
 	//15s之后自动销毁
 	timer_life += dt;
-	if (timer_life > (float)LIFE_AMMO) {
+	if (timer_life > (float)LIFE_MAX) {
 		SetActive(false);
 	}
 }

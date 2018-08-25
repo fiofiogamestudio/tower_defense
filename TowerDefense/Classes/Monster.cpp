@@ -50,7 +50,7 @@ void Monster::moveByPath(float dt)
 	Vec2 vec_target = Vec2(pos_target->GetPosx() * 40, pos_target->GetPosy() * 40);
 	Vec2 vec_current = this->getPosition();
 	float distance = vec_target.distance(vec_current);
-	if (distance > 1.0f) {
+	if (distance > 5.0f) {
 		Vec2 dir = Vec2(vec_current, vec_target);
 		dir.normalize();
 		dir *= _speed;

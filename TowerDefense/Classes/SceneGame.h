@@ -7,6 +7,8 @@
 #include "Ammo.h"
 
 #include "Info.h"
+
+#include "DateManager.h"
 using namespace cocos2d;
 
 class SceneGame :public Layer {
@@ -26,8 +28,11 @@ public:
 	Entity* panel_tower;
 	Node* group_empty;
 	Node* group_nempty;
+	Node* group_nempty1;
+	Node* group_nempty2;
 
 	Vector<Pos*> vec_path;
+	Vector<Pos*> vec_path1;
 
 	Vector<Monster*> vec_monster;
 
@@ -44,7 +49,9 @@ public:
 	Info* info_ammo;
 	Info* info_ammo_file;
 
-	Vector<Node*> vec_todestroy;
+	Vector<Entity*> vec_todestroy;
+
+	Sprite* _mask;
 public:
 	void initNode();
 
@@ -66,8 +73,10 @@ public:
 
 	void CloseAllMenu();
 
-	void OpenMenu();
+	void OpenMenu(int index);
 
 	void ShowTip(std::string path);
+
+	void ShowAnimation(std::string path,int len,float time,Size size,Vec2 pos);
 
 };

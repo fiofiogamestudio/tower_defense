@@ -7,6 +7,12 @@ Entity::Entity()
 	pos_father = Vec2(0, 0);
 
 	is_active = true;
+
+
+	//一个延时销毁的计时器
+	has_life = false;
+	time_life = 0;
+	timer_life = 0;
 }
 
 Entity::~Entity()
@@ -41,6 +47,11 @@ void Entity::BindSprite(std::string path)
 	this->addChild(_sprite);
 }
 
+Sprite * Entity::GetSprite()
+{
+	return _sprite;
+}
+
 void Entity::BindAnimation(std::string name, int len,float time,Size size)
 {
 	Vector<SpriteFrame*> vec_frame;
@@ -54,14 +65,23 @@ void Entity::BindAnimation(std::string name, int len,float time,Size size)
 	_anim = Animate::create(animation);
 }
 
-void Entity::SetAnimationPlay(bool play)
+void Entity::SetAnimationPlay(bool play,bool once)
 {
 	if (_anim == NULL) {
 		log("not bind animation yet!");
 		return;
 	}
-	if (play);
-	_sprite->runAction(RepeatForever::create(_anim));
+	if (play) {
+		if (once) {
+			auto seq = Sequence::create(_anim, CallFuncN::create([&](Node* sender) {
+				sender->removeFromParent();
+			}), nullptr);
+			_sprite->runAction(seq);
+		}else{
+			_sprite->runAction(RepeatForever::create(_anim));
+		}
+	}
+	
 }
 
 void Entity::SetSpriteSize(Size size)
@@ -105,4 +125,21 @@ void Entity::SetActive(bool active)
 bool Entity::GetActive()
 {
 	return is_active;
+}
+
+void Entity::updateLife(float dt)
+{
+	if (has_life) {
+		timer_life += dt;
+		if (timer_life > time_life) {
+			//log("set false");
+			SetActive(false);
+		}
+	}
+}
+
+void Entity::Destroy(float delay)
+{
+	has_life = true;
+	time_life = delay;
 }

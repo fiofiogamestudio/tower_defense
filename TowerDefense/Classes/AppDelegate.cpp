@@ -23,7 +23,7 @@
  ****************************************************************************/
 
 #include "AppDelegate.h"
-#include"SceneGame.h"
+#include "SceneManager.h"
 
 // #define USE_AUDIO_ENGINE 1
 // #define USE_SIMPLE_AUDIO_ENGINE 1
@@ -124,10 +124,15 @@ bool AppDelegate::applicationDidFinishLaunching() {
 	//glview->setFrameSize(1280, 720);
 
     // create a scene. it's an autorelease object
-    auto scene = SceneGame::createScene();
+    //auto scene = SceneGame::createScene();
 
     // run
-    director->runWithScene(scene);
+    //director->runWithScene(scene);
+
+	//用SceneManager来初始化场景
+	SceneManager::BeginWithSceneStart();
+	//DataManager::level_current = 5;
+	//SceneManager::ToSceneGame();
 
     return true;
 }

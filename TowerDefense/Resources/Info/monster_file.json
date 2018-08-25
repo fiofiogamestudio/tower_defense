@@ -20,8 +20,8 @@
 		"100",
 		"5",
 		"50",
-		"TestAnim/test0.png",
-		"TestAnim/test",
+		"Sprites/Monster/bigeye0.png",
+		"Sprites/Monster/bigeye",
 		"UI/hp.png",
 		"UI/hp_bg.png"
 	],
@@ -33,9 +33,35 @@
 		"100",
 		"5",
 		"50",
-		"TestAnim/test0.png",
-		"TestAnim/test",
-		"UI/hp_huge.png",
-		"UI/hp_bg_huge.png"
+		"Sprites/Monster/smalleye0.png",
+		"Sprites/Monster/smalleye",
+		"UI/hp.png",
+		"UI/hp_bg.png"
+	],
+	"many_legs":[
+		"0",
+		"80",
+		"80",
+		"7",
+		"100",
+		"5",
+		"50",
+		"Sprites/Monster/manylegs0.png",
+		"Sprites/Monster/fewlegs",
+		"UI/hp.png",
+		"UI/hp_bg.png"
+	],
+	"few_legs":[
+		"0",
+		"80",
+		"80",
+		"7",
+		"100",
+		"5",
+		"50",
+		"Sprites/Monster/fewlegs0.png",
+		"Sprites/Monster/fewlegs",
+		"UI/hp.png",
+		"UI/hp_bg.png"
 	]
 }
