@@ -2,13 +2,11 @@
 #include "ui/CocosGUI.h"
 using namespace ui;
 
-#define SPACE_Z (5)
-#define PLANET_Z (10)
-#define STATION_Z (15)
-#define TITLE_Z (20)
-//
-#define METEORB_Z (6)
-#define METEORF_Z (16)
+#define STAR_Z (1)
+#define METEORB_Z (5)
+#define UI_Z (8)
+#define METEORF_Z (10)
+#define TITLE_Z (15)
 
 #define STAR_P ("UI/star0.png")
 #define STAR_N ("UI/star")
@@ -19,6 +17,7 @@ using namespace ui;
 
 //流星的plist路径
 #define METEOR_P ("Particle/meteor.plist")
+//流星的材质路径(好像加了没有什么用)
 #define METEORT_P ("Particle/meteor.png")
 
 Scene * SceneStart::createScene()
@@ -34,6 +33,9 @@ bool SceneStart::init()
 	if (!Layer::init()) {
 		return false;
 	}
+	//修正屏幕
+	this->setPosition(Vec2(40,-20));
+	this->setScale(1.1f);
 
 	//初始化随机数种子
 	{
@@ -41,7 +43,6 @@ bool SceneStart::init()
 		gettimeofday(&now, NULL);
 		srand((unsigned int)(now.tv_sec * 1000 + now.tv_usec / 1000));
 	}
-
 	//初始化UI
 	initUI();
 	//初始化点击
@@ -58,6 +59,10 @@ bool SceneStart::init()
 		time_meteor = 10.0f;
 		timer_meteor1 = 0;
 		time_meteor1 = 20.0f;
+
+		can_click = true;
+		timer_click = 0;
+		time_click = 0;
 	}
 
 	//测试生成星星
@@ -74,30 +79,36 @@ bool SceneStart::init()
 
 void SceneStart::initUI()
 {
+	node_UI = Node::create();
+	this->addChild(node_UI,UI_Z);
 	//显示标题
 	{
-		Vec2 pos_title = Vec2(800, 550);
+		Vec2 pos_title = Vec2(850, 550);
 
-		Sprite* title = Sprite::create(TITLE_P);
-		title->setPosition(pos_title);
+		_title = Sprite::create(TITLE_P);
+		//title->setPosition(pos_title);
 		//下面添加到clip节点下了
 		//this->addChild(title, TITLE_Z);
 
 		//标题添加闪光特效
-		Size size_clip =title->getContentSize();
+		Size size_clip =_title->getContentSize();
 		Sprite* spark = Sprite::create("UI/spark.png");
 		spark->setPosition(-size_clip.width, 0);
 		ClippingNode* clip = ClippingNode::create();
-		clip->setPosition(title->getPosition());
-		this->addChild(clip, TITLE_Z );
+		clip->setPosition(_title->getPosition());
 		clip->setAlphaThreshold(0.05f);
 		clip->setContentSize(size_clip);
-		clip->setStencil(title);
-		clip->addChild(title, 1);
+		clip->setStencil(_title);
+
+		//标题在最上层
+		this->addChild(clip, TITLE_Z);
+		clip->addChild(_title, 1);
 		clip->addChild(spark, 2);
+
+		clip->setPosition(pos_title);
 		
-		auto moveto = MoveTo::create(2.0f, Vec2(size_clip.width, 0));
-		auto moveback = MoveTo::create(2.0f, Vec2(-size_clip.width, 0));
+		auto moveto = MoveTo::create(2.5f, Vec2(size_clip.width, 0));
+		auto moveback = MoveTo::create(2.5f, Vec2(-size_clip.width, 0));
 		spark->runAction(RepeatForever::create(Sequence::create(moveto, moveback, nullptr, nullptr)));
 	}
 	//显示星球
@@ -106,17 +117,24 @@ void SceneStart::initUI()
 		planet->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 			if (type == ui::Widget::TouchEventType::ENDED) {
 				//log("click planet!");
+				if(can_click)
 				OpenPlanet();
 			}
 		});
-		planet->setPosition(Vec2(300, 400));
-		this->addChild(planet, PLANET_Z);
+		planet->setPosition(Vec2(350, 400));
+		node_UI->addChild(planet);
 		//为星球添加缩放动画
 		auto scaleup = ScaleTo::create(0.8f, 1.01f);
 		auto scaledown = ScaleTo::create(0.8f, 1.0f);
 		auto seq = Sequence::create(scaleup, scaledown,nullptr,nullptr);
 		auto repeat = RepeatForever::create(seq);
 		planet->runAction(repeat);
+		//添加点击星球后的UI
+		{
+			node_menu_level = Node::create();
+			planet->addChild(node_menu_level);
+
+		}
 	}
 	//显示空间站
 	{
@@ -124,11 +142,12 @@ void SceneStart::initUI()
 		station->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 			if (type == ui::Widget::TouchEventType::ENDED) {
 				//log("click station!");
+				if(can_click)
 				OpenStation();
 			}
 		});
-		station->setPosition(Vec2(800, 300));
-		this->addChild(station, STATION_Z);
+		station->setPosition(Vec2(850, 300));
+		node_UI->addChild(station);
 		//为空间站添加悬浮动画
 		auto moveup = MoveBy::create(0.5f, Vec2(0, 5));
 		auto movedown = MoveBy::create(0.5f, Vec2(0, -5));
@@ -156,6 +175,7 @@ void SceneStart::initTouch()
 		Point point = Director::getInstance()->convertToGL(pos);
 		//log("pos%f,%f", pos.x, pos.y);
 		//log("point%f,%f", point.x, point.y);
+		if(can_click)
 		ReturnToSpace();
 		return true;
 	};
@@ -166,6 +186,12 @@ void SceneStart::initTouch()
 
 void SceneStart::update(float dt)
 {
+	if (can_click) {
+		log("a");
+	}
+	else {
+		log("b");
+	}
 	//根据计时器来随机生成星星
 	{
 		CreateStarByRandom(dt);
@@ -193,6 +219,9 @@ void SceneStart::update(float dt)
 		}
 		//log("size of vec_todestroy is %d", vec_todestroy.size());
 	}
+
+	//刷新点击计时器
+	updateClick(dt);
 }
 
 void SceneStart::ShowStar(Vec2 pos)
@@ -211,7 +240,7 @@ void SceneStart::ShowStar(Vec2 pos)
 
 	star->BindAnimation(STAR_N, 6, time, Size(10,10));
 	star->SetAnimationPlay(true, true);
-	this->addChild(star, SPACE_Z);
+	this->addChild(star,STAR_Z);
 	//手动销毁Entity
 	vec_todestroy.pushBack(star);
 	star->Destroy(3.0f);
@@ -337,18 +366,28 @@ void SceneStart::CreateMeteorByRandom1(float dt)
 
 void SceneStart::OpenPlanet()
 {
-	auto scaleto = ScaleTo::create(0.8f, 1.5f);
-	auto moveto = MoveTo::create(0.8f, Vec2(600, -58));
+	auto scaleto = ScaleTo::create(0.8f, 1.45f);
+	auto moveto = MoveTo::create(0.8f, Vec2(280, -205));
 	auto spawn = Spawn::create(scaleto, moveto, nullptr, nullptr);
-	this->runAction(spawn);
+	node_UI->runAction(spawn);
+
+	auto fadeout = FadeOut::create(0.3f);
+	_title->runAction(fadeout);
+
+	DisableClick(0.8f);
 }
 
 void SceneStart::OpenStation()
 {
 	auto scaleto = ScaleTo::create(0.8f, 1.5f);
-	auto moveto = MoveTo::create(0.8f, Vec2(-550, -20));
+	auto moveto = MoveTo::create(0.8f, Vec2(-850, -100));
 	auto spawn = Spawn::create(scaleto, moveto, nullptr, nullptr);
-	this->runAction(spawn);
+	node_UI->runAction(spawn);
+
+	auto fadeout = FadeOut::create(0.3f);
+	_title->runAction(fadeout);
+
+	DisableClick(0.8f);
 }
 
 void SceneStart::ReturnToSpace()
@@ -357,7 +396,29 @@ void SceneStart::ReturnToSpace()
 	auto scaleto = ScaleTo::create(0.8f, 1.0f);
 	auto moveto = MoveTo::create(0.8f, Vec2(0, 0));
 	auto spawn = Spawn::create(scaleto, moveto, nullptr, nullptr);
-	this->runAction(spawn);
+	node_UI->runAction(spawn);
+
+	auto fadein = FadeIn::create(0.3f);
+	_title->runAction(fadein);
+
+	DisableClick(0.8f);
 }
+
+void SceneStart::updateClick(float dt)
+{
+	if (can_click)return;
+	timer_click += dt;
+	if (timer_click > time_click) {
+		can_click = true;
+	}
+}
+
+void SceneStart::DisableClick(float time)
+{
+	can_click = false;
+	timer_click = 0;
+	time_click = time;
+}
+
 
 

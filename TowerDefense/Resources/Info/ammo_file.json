@@ -18,6 +18,15 @@
 		"Sprites/Ammo/ammo_plasma"
 	],
 	"ammo_plasma_up":[
+		"20",
+		"20",
+		"Sprites/Ammo/ammo_plasma_up0.png",
+		"1",
+		"6",
+		"200",
+		"Sprites/Ammo/ammo_plasma_up"
+	],
+	"ammo_plasma_up_up":[
 		"10",
 		"10",
 		"Sprites/Ammo/ammo_plasma0.png",
@@ -26,7 +35,52 @@
 		"200",
 		"Sprites/Ammo/ammo_plasma"
 	],
-	"ammo_plasma_up_up":[
+	"ammo_cannon":[
+		"10",
+		"10",
+		"Sprites/Ammo/ammo_cannon0.png",
+		"0",
+		"none",
+		"none",
+		"none"
+	],
+	"ammo_cannon_up":[
+		"10",
+		"10",
+		"Sprites/Ammo/ammo_cannon_up0.png",
+		"0",
+		"none",
+		"none",
+		"none"
+	],
+	"ammo_cannon_up_up":[
+		"10",
+		"10",
+		"Sprites/Ammo/ammo_cannon_up_up0.png",
+		"0",
+		"none",
+		"none",
+		"none"
+	],
+	"ammo_boardcast":[
+		"10",
+		"10",
+		"Sprites/Ammo/ammo_plasma0.png",
+		"1",
+		"6",
+		"200",
+		"Sprites/Ammo/ammo_plasma"
+	],
+	"ammo_boardcast_up":[
+		"10",
+		"10",
+		"Sprites/Ammo/ammo_plasma0.png",
+		"1",
+		"6",
+		"200",
+		"Sprites/Ammo/ammo_plasma"
+	],
+	"ammo_boardcast_up_up":[
 		"10",
 		"10",
 		"Sprites/Ammo/ammo_plasma0.png",

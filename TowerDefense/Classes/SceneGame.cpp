@@ -29,7 +29,6 @@ using namespace ui;
 #define MONEY_P ("UI/money.png")
 #define CORE_P ("UI/core.png")
 #define WAVE_P ("UI/wave.png")
-#define MAX_P ("Tip/max_level.png")
 
 #define TB_P ("Maps/towerbase0.png")
 #define TBA_P ("Maps/towerbase")
@@ -42,6 +41,12 @@ using namespace ui;
 
 #define AIRSHIP_P ("Maps/airship0.png")
 #define AIRSHIPA_N ("Maps/airship")
+
+//几个Tip的路径
+#define TIP_0_P ("Tip/tip0.png")
+#define TIP_1_P ("Tip/tip1.png")
+#define TIP_2_P ("Tip/tip2.png")
+
 
 Scene * SceneGame::createScene()
 {
@@ -65,20 +70,28 @@ bool SceneGame::init()
 	//初始化地图
 	initMap(DataManager::level_current);
 
-	//读取怪物信息
+	//读取信息
 	LoadInfo();
+
+
+	//测试生成塔(在index为0的塔基)
+	//CreateTower(5);
 	
 	//测试生成怪物
-	//CreateMonster(0);
-	//CreateMonster(1);
-	//CreateMonster(2);
-	CreateMonster(3);
+	//CreateMonster(0,0);
+
+	//测试根据WaveInfo来生成怪物
+	//CreateMonsterByWaveInfo(0);
 	
-	//测试显示tip
-	//ShowTip(MAX_P);
 
 	//测试显示怪物死亡动画特效
 	//ShowAnimation(BOOM_N, 7, 0.1f, Size(160, 160), Vec2(100, 100));
+
+
+	//测试Tip的显示效果
+	//ShowTip(TIP_0_P);
+	//ShowTip(TIP_1_P);
+	//ShowTip(TIP_2_P);
 
 	//绑定update函数
 	this->schedule(schedule_selector(SceneGame::update));
@@ -156,6 +169,9 @@ void SceneGame::update(float dt)
 				}
 				vec_monster.erase(vec_monster.begin() + i);
 				temp->removeFromParent();
+
+				//计数器减一
+				DataManager::num_monster--;
 			}
 		}
 	}
@@ -184,6 +200,35 @@ void SceneGame::update(float dt)
 			}
 		}
 		//log("size of vec_todestroy is %d", vec_todestroy.size());
+	}
+
+	//依次生成vec_struct_monster里面的怪物
+	if (!is_final&&DataManager::num_monster<=0) {
+		timer_wave += dt;
+		if (timer_wave > time_wave) {
+			timer_wave = 0;
+			bool flag = CreateMonsterByWaveInfo(index_wave);
+			index_wave++;
+			if (flag) {
+				is_final = true;
+				log("final wave!");
+				
+			}
+			else {
+				log("create wave: %d", index_wave);
+				
+			}
+		}
+	}
+	if (vec_struct_monster.size() != 0) {
+		timer_monster += dt;
+		if (timer_monster > time_monster) {
+			timer_monster = 0;
+			struct_monster* s = vec_struct_monster.at(0);
+			std::vector<struct_monster*>::iterator iter = vec_struct_monster.begin();
+			vec_struct_monster.erase(iter);
+			CreateMonster(s->type, s->path);
+		}
 	}
 }
 
@@ -245,6 +290,10 @@ void SceneGame::initUI()
 		panel_tower->addChild(group_nempty2);
 		group_nempty2->setVisible(false);
 
+		group_full = Node::create();
+		panel_tower->addChild(group_full);
+		group_full->setVisible(false);
+
 		//空白地块的UI
 			{
 			std::string path_build = String::createWithFormat("%s%d.png", ICON_N, 0)->getCString();
@@ -258,22 +307,22 @@ void SceneGame::initUI()
 			button_build->setPosition(Vec2(-50, 0));
 			group_empty->addChild(button_build);
 
-			std::string path_build1 = String::createWithFormat("%s%d.png", ICON_N, 1)->getCString();
+			std::string path_build1 = String::createWithFormat("%s%d.png", ICON_N, 3)->getCString();
 			Button* button_build1 = Button::create(path_build1, path_build1, path_build1);
 			button_build1->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
-					CreateTower(0);
+					CreateTower(3);
 					CloseAllMenu();
 				}
 			});
 			button_build1->setPosition(Vec2(0, 0));
 			group_empty->addChild(button_build1);
 
-			std::string path_build2 = String::createWithFormat("%s%d.png", ICON_N, 2)->getCString();
+			std::string path_build2 = String::createWithFormat("%s%d.png", ICON_N, 6)->getCString();
 			Button* button_build2 = Button::create(path_build2, path_build2, path_build2);
 			button_build2->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
-					CreateTower(0);
+					CreateTower(6);
 					CloseAllMenu();
 				}
 			});
@@ -293,6 +342,8 @@ void SceneGame::initUI()
 						//升级
 						{
 							log("upgrade to tower1");
+							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+							CreateTower(1);
 						}
 						CloseAllMenu();
 					}
@@ -307,6 +358,8 @@ void SceneGame::initUI()
 						//升级
 						{
 							log("upgrade to tower2");
+							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+							CreateTower(2);
 
 						}
 						CloseAllMenu();
@@ -315,15 +368,17 @@ void SceneGame::initUI()
 				button_upgrade2->setPosition(Vec2(0, 0));
 				group_nempty->addChild(button_upgrade2);
 			}
-//二类塔的升级UI
+			//二类塔的升级UI
 			{
-			std::string path_upgrade4 = String::createWithFormat("%s%d.png", ICON_N, 1)->getCString();
+			std::string path_upgrade4 = String::createWithFormat("%s%d.png", ICON_N, 4)->getCString();
 			Button* button_upgrade4 = Button::create(path_upgrade4, path_upgrade4, path_upgrade4);
 			button_upgrade4->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
 					//升级
 					{
 						log("upgrade to tower4");
+						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						CreateTower(4);
 					}
 					CloseAllMenu();
 				}
@@ -331,13 +386,15 @@ void SceneGame::initUI()
 			button_upgrade4->setPosition(Vec2(-50, 0));
 			group_nempty1->addChild(button_upgrade4);
 
-			std::string path_upgrade5 = String::createWithFormat("%s%d.png", ICON_N, 2)->getCString();
+			std::string path_upgrade5 = String::createWithFormat("%s%d.png", ICON_N, 5)->getCString();
 			Button* button_upgrade5 = Button::create(path_upgrade5, path_upgrade5, path_upgrade5);
 			button_upgrade5->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
 					//升级
 					{
 						log("upgrade to tower5");
+						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						CreateTower(5);
 					}
 					CloseAllMenu();
 				}
@@ -347,13 +404,15 @@ void SceneGame::initUI()
 			}
 			//三类塔的升级UI
 			{
-				std::string path_upgrade7 = String::createWithFormat("%s%d.png", ICON_N, 1)->getCString();
+				std::string path_upgrade7 = String::createWithFormat("%s%d.png", ICON_N, 7)->getCString();
 				Button* button_upgrade7 = Button::create(path_upgrade7, path_upgrade7, path_upgrade7);
 				button_upgrade7->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//升级
 						{
 							log("upgrade to tower7");
+							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+							CreateTower(7);
 						}
 						CloseAllMenu();
 					}
@@ -361,13 +420,15 @@ void SceneGame::initUI()
 				button_upgrade7->setPosition(Vec2(-50, 0));
 				group_nempty2->addChild(button_upgrade7);
 
-				std::string path_upgrade8 = String::createWithFormat("%s%d.png", ICON_N, 2)->getCString();
+				std::string path_upgrade8 = String::createWithFormat("%s%d.png", ICON_N, 8)->getCString();
 				Button* button_upgrade8 = Button::create(path_upgrade8, path_upgrade8, path_upgrade8);
 				button_upgrade8->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//升级
 						{
 							log("upgrade to tower8");
+							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+							CreateTower(8);
 						}
 						CloseAllMenu();
 					}
@@ -410,6 +471,19 @@ void SceneGame::initUI()
 				});
 				button_destroy2->setPosition(Vec2(50, 0));
 				group_nempty2->addChild(button_destroy2);
+			}
+			//不能再升级的时候的UI
+			{
+				Button* button_destroy3 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+				button_destroy3->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						//拆除
+						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						CloseAllMenu();
+					}
+				});
+				button_destroy3->setPosition(Vec2(0, 0));
+				group_full->addChild(button_destroy3);
 			}
 
 		}
@@ -536,6 +610,20 @@ void SceneGame::initMap(int i)
 			vec_path.pushBack(new Pos(posx, posy));
 		}
 	}
+	//添加第二条路径的节点(同理)
+	{
+		if (_map->getObjectGroup("path1") != nullptr) {
+			auto group_node_path = _map->getObjectGroup("path1");
+			auto vec_node_path = group_node_path->getObjects();
+			int num = vec_node_path.size();
+			for (unsigned int i = 0; i < num; i++) {
+				auto node_path = vec_node_path.at(i).asValueMap();
+				float posx = node_path.at("x").asFloat();
+				float posy = node_path.at("y").asFloat();
+				vec_path1.pushBack(new Pos(posx, posy));
+			}
+		}
+	}
 }
 
 int SceneGame::GetGridIndex(Pos* pos)
@@ -598,6 +686,15 @@ void SceneGame::DetectorVecTowebase(Point point)
 
 void SceneGame::LoadInfo()
 {
+	//载入info_wave
+	{
+		ValueVector vec_name_wave;
+		for (int i = 0; i < 9; i++) {
+			vec_name_wave.push_back(Value(Value(i).asString()));
+		}
+		std::string path = String::createWithFormat("Info/level%d.json", DataManager::level_current)->getCString();
+		info_wave = Info::create(vec_name_wave, path);
+	}
 	//载入info_monster
 	{
 		ValueVector vec_name_monster;
@@ -625,6 +722,12 @@ void SceneGame::LoadInfo()
 		vec_name_tower.push_back(Value("plasma"));
 		vec_name_tower.push_back(Value("plasma_up"));
 		vec_name_tower.push_back(Value("plasma_up_up"));
+		vec_name_tower.push_back(Value("cannon"));
+		vec_name_tower.push_back(Value("cannon_up"));
+		vec_name_tower.push_back(Value("cannon_up_up"));
+		vec_name_tower.push_back(Value("boardcast"));
+		vec_name_tower.push_back(Value("boardcast_up"));
+		vec_name_tower.push_back(Value("boardcast_up"));
 
 		info_tower = Info::create(vec_name_tower, "Info/tower.json");
 	}
@@ -635,6 +738,12 @@ void SceneGame::LoadInfo()
 		vec_name_tower_file.push_back(Value("plasma"));
 		vec_name_tower_file.push_back(Value("plasma_up"));
 		vec_name_tower_file.push_back(Value("plasma_up_up"));
+		vec_name_tower_file.push_back(Value("cannon"));
+		vec_name_tower_file.push_back(Value("cannon_up"));
+		vec_name_tower_file.push_back(Value("cannon_up_up"));
+		vec_name_tower_file.push_back(Value("boardcast"));
+		vec_name_tower_file.push_back(Value("boardcast_up"));
+		vec_name_tower_file.push_back(Value("boardcast_up"));
 
 		info_tower_file = Info::create(vec_name_tower_file, "Info/tower_file.json");
 	}
@@ -645,6 +754,12 @@ void SceneGame::LoadInfo()
 		vec_name_ammo.push_back(Value("ammo_plasma"));
 		vec_name_ammo.push_back(Value("ammo_plasma_up"));
 		vec_name_ammo.push_back(Value("ammo_plasma_up_up"));
+		vec_name_ammo.push_back(Value("ammo_cannon"));
+		vec_name_ammo.push_back(Value("ammo_cannon_up"));
+		vec_name_ammo.push_back(Value("ammo_cannon_up_up"));
+		vec_name_ammo.push_back(Value("ammo_boardcast"));
+		vec_name_ammo.push_back(Value("ammo_boardcast_up"));
+		vec_name_ammo.push_back(Value("ammo_boardcast_up_up"));
 
 		info_ammo = Info::create(vec_name_ammo, "Info/ammo.json");
 	}
@@ -655,6 +770,12 @@ void SceneGame::LoadInfo()
 		vec_name_ammo_file.push_back(Value("ammo_plasma"));
 		vec_name_ammo_file.push_back(Value("ammo_plasma_up"));
 		vec_name_ammo_file.push_back(Value("ammo_plasma_up_up"));
+		vec_name_ammo_file.push_back(Value("ammo_cannon"));
+		vec_name_ammo_file.push_back(Value("ammo_cannon_up"));
+		vec_name_ammo_file.push_back(Value("ammo_cannon_up_up"));
+		vec_name_ammo_file.push_back(Value("ammo_boardcast"));
+		vec_name_ammo_file.push_back(Value("ammo_boardcast_up"));
+		vec_name_ammo_file.push_back(Value("ammo_boardcast_up_up"));
 
 
 		info_ammo_file = Info::create(vec_name_ammo_file, "Info/ammo_file.json");
@@ -662,12 +783,13 @@ void SceneGame::LoadInfo()
 }
 
 
-void SceneGame::CreateMonster(int type)
+void SceneGame::CreateMonster(int type,int path)
 {
 	ValueVector vv_monster = info_monster->GetIntInfoVectorByID(type);
 	ValueVector vv_monster_file = info_monster_file->GetStringInfoVectorByID(type);
 	//读取文件数据
-	int index_path = vv_monster_file.at(0).asInt();
+	//这里的index_path已经弃用
+	//int index_path = vv_monster_file.at(0).asInt();
 	Size size = Size(vv_monster_file.at(1).asInt(), vv_monster_file.at(2).asInt());
 	int len_animation = vv_monster_file.at(3).asInt();
 	float inter_animation = (float)vv_monster_file.at(4).asInt()/1000.0f;
@@ -679,7 +801,7 @@ void SceneGame::CreateMonster(int type)
 	std::string path_hp_slider = vv_monster_file.at(10).asString();
 	//测试输出读取文件的信息
 	/*{
-		log("index_path: %d;size_x: %f;size_y: %f;", index_path, size.width, size.height);
+		log("size_x: %f;size_y: %f;", size.width, size.height);
 		log("len_animation: %d,inter_animation: %f;offset_hp_x: %f;offset_hp_y: %f", len_animation, inter_animation, offset_hp.x, offset_hp.y);
 		log("path_sprite: %s", path_sprite.c_str());
 		log("name_animation: %s", name_animation.c_str());
@@ -688,7 +810,13 @@ void SceneGame::CreateMonster(int type)
 
 
 	//生成
-	Monster* monster = (Monster*)Monster::createByPath(vec_path);
+	Monster* monster;
+	if (path == 0) {
+		monster = (Monster*)Monster::createByPath(vec_path);
+	}
+	else {
+		monster = (Monster*)Monster::createByPath(vec_path1);
+	}
 	monster->BindSprite(path_sprite);
 	monster->SetSpriteSize(size);
 	monster->BindAnimation(name_animation, len_animation, inter_animation,size);
@@ -702,6 +830,9 @@ void SceneGame::CreateMonster(int type)
 
 	//设置参数
 	monster->SetValuesByInfo(vv_monster);
+
+	//计数器加一
+	DataManager::num_monster++;
 }
 
 void SceneGame::CreateTower(int type)
@@ -751,13 +882,14 @@ void SceneGame::CloseAllMenu()
 	group_nempty->setVisible(false);
 	group_nempty1->setVisible(false);
 	group_nempty2->setVisible(false);
+	group_full->setVisible(false);
 }
 
 void SceneGame::OpenMenu(int index)
 {
 	//打开菜单时添加时间减缓效果
 	{
-		Director::getInstance()->getScheduler()->setTimeScale(0.1f);
+		Director::getInstance()->getScheduler()->setTimeScale(0.15f);
 		_mask->setVisible(true);
 	}
 	node_UI_tower->setVisible(true);
@@ -768,14 +900,14 @@ void SceneGame::OpenMenu(int index)
 		case 0:
 			group_nempty->setVisible(true);
 			break;
-		case 1:
+		case 3:
 			group_nempty1->setVisible(true);
 			break;
-		case 2:
+		case 6:
 			group_nempty2->setVisible(true);
 			break;
 		default:
-			log("error index to open_menu!");
+			group_full->setVisible(true);
 			break;
 		}
 	}
@@ -784,14 +916,14 @@ void SceneGame::OpenMenu(int index)
 	}
 }
 
-void SceneGame::ShowTip(std::string path)
+void SceneGame::ShowTip(std::string path,float time_scaleto,float target_scale,float time_fadeout)
 {
 	auto tip = Sprite::create(path);
 	Size size = Director::getInstance()->getVisibleSize();
 	tip->setPosition(Vec2(size.width/2,size.height/2+50));
 	this->addChild(tip, TIP_Z);
-	auto scaleto = ScaleTo::create(0.3f, 1.1f);
-	auto fadein = FadeOut::create(0.7f);
+	auto scaleto = ScaleTo::create(time_scaleto, target_scale);
+	auto fadein = FadeOut::create(time_fadeout);
 	auto seq = Sequence::create(scaleto, fadein, CallFuncN::create([&](Node* sender) {
 		sender->removeFromParent();
 	}), nullptr);
@@ -812,4 +944,35 @@ void SceneGame::ShowAnimation(std::string path,int len,float time,Size size,Vec2
 	vec_todestroy.pushBack(animation);
 	animation->Destroy(3.0f);
 }
+
+bool SceneGame::CreateMonsterByWaveInfo(int index_wave)
+{
+	bool flag = false;
+	ValueVector vv = info_wave->GetStringInfoVectorByID(index_wave);
+	int type9 = vv.at(0).asInt();
+	int path9 = vv.at(1).asInt();
+	int num99 = vv.at(2).asInt();
+	flag = vv.at(3).asBool();
+	//测试
+	//log("type9: %d;path9: %d;num99: %d", type9, path9, num99);
+	int type, path, num;
+	bool is_final = vv.at(3).asBool();
+	do {
+		type = type9 % 10;
+		path = path9 % 10;
+		num = num99 % 100;
+		type9 /= 10;
+		path9 /= 10;
+		num99 /= 100;
+		//测试
+		//log("type: %d;path: %d;num: %d", type, path, num);
+		for (int i = 0; i < num; i++) {
+			struct_monster* s = new struct_monster{ type,path };
+			vec_struct_monster.push_back(s);
+		}
+		
+	} while (type9!=9);
+	return flag;
+}
+
 

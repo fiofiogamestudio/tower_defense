@@ -5,4 +5,5 @@ public:
 
 	//²»·â×°ÁË
 	static int level_current;
+	static int num_monster;
 };

@@ -131,8 +131,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
 	//用SceneManager来初始化场景
 	SceneManager::BeginWithSceneStart();
-	//DataManager::level_current = 5;
-	//SceneManager::ToSceneGame();
+	DataManager::level_current = 5;
+	SceneManager::ToSceneGame();
 
     return true;
 }

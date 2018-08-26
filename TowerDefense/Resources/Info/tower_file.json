@@ -30,6 +30,54 @@
 		"200",
 		"Sprites/Tower/plasma_up_up0.png",
 		"Sprites/Tower/plasma_up_up"
+	],
+	"cannon":[
+		"80",
+		"120",
+		"6",
+		"200",
+		"Sprites/Tower/plasma0.png",
+		"Sprites/Tower/plasma"
+	],
+	"cannon_up":[
+		"80",
+		"110",
+		"10",
+		"200",
+		"Sprites/Tower/plasma_up0.png",
+		"Sprites/Tower/plasma_up"
+	],
+	"cannon_up_up":[
+		"80",
+		"120",
+		"10",
+		"200",
+		"Sprites/Tower/plasma_up_up0.png",
+		"Sprites/Tower/plasma_up_up"
+	],
+	"boardcast":[
+		"80",
+		"120",
+		"1",
+		"200",
+		"Sprites/Tower/boardcast0.png",
+		"Sprites/Tower/boardcast"
+	],
+	"boardcast_up":[
+		"80",
+		"110",
+		"1",
+		"200",
+		"Sprites/Tower/boardcast_up0.png",
+		"Sprites/Tower/boardcast_up"
+	],
+	"boardcast_up_up":[
+		"80",
+		"120",
+		"1",
+		"200",
+		"Sprites/Tower/boardcast_up_up0.png",
+		"Sprites/Tower/boardcast_up_up"
 	]
 	
 }

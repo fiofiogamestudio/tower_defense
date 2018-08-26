@@ -8,6 +8,12 @@ public:
 	CREATE_FUNC(SceneStart);
 	virtual bool init();
 
+	Node* node_UI;
+	Sprite* _title;
+
+	Node* node_menu_level;
+	Node* node_menu_settings;
+
 	void initUI();
 
 	void initTouch();
@@ -43,4 +49,10 @@ public:
 	void OpenPlanet();
 	void OpenStation();
 	void ReturnToSpace();
+
+	float timer_click;
+	float time_click;
+	bool can_click;
+	void updateClick(float dt);
+	void DisableClick(float time);
 };

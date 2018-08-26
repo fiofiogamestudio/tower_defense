@@ -1,4 +1,7 @@
 #pragma once
+
+#include <vector>
+
 #include "cocos2d.h"
 #include "Pos.h"
 #include "TowerBase.h"
@@ -7,6 +10,7 @@
 #include "Ammo.h"
 
 #include "Info.h"
+#include "Struct.h"
 
 #include "DateManager.h"
 using namespace cocos2d;
@@ -30,6 +34,7 @@ public:
 	Node* group_nempty;
 	Node* group_nempty1;
 	Node* group_nempty2;
+	Node* group_full;
 
 	Vector<Pos*> vec_path;
 	Vector<Pos*> vec_path1;
@@ -39,6 +44,8 @@ public:
 	Vector<Tower*> vec_tower;
 
 	Vector<Ammo*> vec_ammo;
+
+	Info* info_wave;
 
 	Info* info_monster;
 	Info* info_monster_file;
@@ -67,7 +74,7 @@ public:
 
 	void LoadInfo();
 
-	void CreateMonster(int type);
+	void CreateMonster(int type,int path);
 
 	void CreateTower(int type);
 
@@ -75,8 +82,19 @@ public:
 
 	void OpenMenu(int index);
 
-	void ShowTip(std::string path);
+	void ShowTip(std::string path, float time_scaleto=0.5f, float target_scale=1.1f, float time_fadeout=1.5f);
 
 	void ShowAnimation(std::string path,int len,float time,Size size,Vec2 pos);
+
+	//根据Wave来创建函数
+	float timer_monster = 0;
+	float time_monster = 0.5f;
+	std::vector<struct_monster*> vec_struct_monster;
+	//返回布尔值：是否是最后一波
+	bool CreateMonsterByWaveInfo(int index_wave);
+	float timer_wave = 0;
+	float time_wave = 5.0f;
+	int index_wave = 0;
+	bool is_final = false;
 
 };

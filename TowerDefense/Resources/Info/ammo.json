@@ -18,5 +18,35 @@
 		0,
 		10,
 		50
+	],
+	"ammo_cannon":[
+		0,
+		30,
+		250
+	],
+	"ammo_cannon_up":[
+		0,
+		30,
+		200
+	],
+	"ammo_cannon_up_up":[
+		0,
+		30,
+		200
+	],
+	"ammo_boardcast":[
+		0,
+		10,
+		0
+	],
+	"ammo_boardcast_up":[
+		0,
+		10,
+		0
+	],
+	"ammo_boardcast_up_up":[
+		0,
+		10,
+		0
 	]
 }
