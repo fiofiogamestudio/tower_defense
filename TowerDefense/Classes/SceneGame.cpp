@@ -37,7 +37,10 @@ using namespace ui;
 #define FGFA_P ("Maps/fungus_fat")
 
 #define ICON_N ("UI/icon_tower")
+
 #define BOOM_N ("Anim/boom")
+#define ICE_N ("Anim/ice")
+#define FIRE_N ("Anim/fire")
 
 #define AIRSHIP_P ("Maps/airship0.png")
 #define AIRSHIPA_N ("Maps/airship")
@@ -46,6 +49,8 @@ using namespace ui;
 #define TIP_0_P ("Tip/tip0.png")
 #define TIP_1_P ("Tip/tip1.png")
 #define TIP_2_P ("Tip/tip2.png")
+#define TIP_3_P ("Tip/tip3.png")
+#define TIP_4_P ("Tip/tip4.png")
 
 
 Scene * SceneGame::createScene()
@@ -61,6 +66,13 @@ bool SceneGame::init()
 	if (!Layer::init()) {
 		return false;
 	}
+
+	//播放BGM
+	AudioManager::PlayBGM(BATTLE_M,1.5f);
+	
+	//初始化DataManager
+	DataManager::initGame();
+
 	//初始化节点
 	initNode();
 	//初始化UI
@@ -79,19 +91,24 @@ bool SceneGame::init()
 	
 	//测试生成怪物
 	//CreateMonster(0,0);
+	//CreateMonster(5, 1);
 
 	//测试根据WaveInfo来生成怪物
 	//CreateMonsterByWaveInfo(0);
 	
 
-	//测试显示怪物死亡动画特效
+	//测试显示动画特效
 	//ShowAnimation(BOOM_N, 7, 0.1f, Size(160, 160), Vec2(100, 100));
+	//ShowAnimation(ICE_N, 7, 0.5f, Size(160, 160),Vec2(100,100));
 
 
 	//测试Tip的显示效果
 	//ShowTip(TIP_0_P);
 	//ShowTip(TIP_1_P);
 	//ShowTip(TIP_2_P);
+
+	//测试结束时候显示的面板
+	//ShowEndMenu();
 
 	//绑定update函数
 	this->schedule(schedule_selector(SceneGame::update));
@@ -100,6 +117,18 @@ bool SceneGame::init()
 void SceneGame::update(float dt)
 {
 	//log("dt time: %f", dt);
+	//胜利或者失败条件判断
+	if (is_final && !is_win&&vec_struct_monster.size() <= 0&&DataManager::num_monster<=0&&DataManager::hp_current>0) {
+		is_win = true;
+		ShowTip(TIP_2_P);
+		ShowEndMenu();
+	}
+	if (!is_lose&&DataManager::hp_current<=0) {
+		is_lose = true;
+		ShowTip(TIP_4_P);
+		ShowEndMenu();
+		ShowEndMenu();
+	}
 	//怪物移动
 	{
 		int num_monster = vec_monster.size();
@@ -137,15 +166,45 @@ void SceneGame::update(float dt)
 			vec_ammo.at(i)->updateAmmo(dt);
 			for (int j = 0; j < vec_monster.size(); j++) {
 				bool flag_break = false;
-				if (vec_monster.at(j)->IsContains(vec_ammo.at(i)->getPosition())&&vec_ammo.at(i)->coled()) {
-					//log("hit!");
-					//结算碰撞
-					vec_monster.at(j)->TakeDamage(vec_ammo.at(i)->GetDamage());
-					flag_break == true;
-					break;
+				//对于子弹种类是波的情况下的检测
+				if (vec_ammo.at(i)->IsWave()) {
+					Vec2 pos1 = vec_ammo.at(i)->getPosition();
+					Vec2 pos2 = vec_monster.at(j)->getPosition();
+					int range = vec_ammo.at(i)->GetWaveRange();
+					float distance = pos1.distance(pos2);
+					if (distance < (float)range) {
+						float random = rand_0_1() * 5;
+						if(random<1.0f)
+						vec_monster.at(j)->TakeDamage(vec_ammo.at(i)->GetDamage());
+					}
+				}
+				//对于一般情况的检测
+				else {
+					if (vec_monster.at(j)->IsContains(vec_ammo.at(i)->getPosition()) && vec_ammo.at(i)->coled()) {
+						//log("hit!");
+						//结算碰撞
+						vec_monster.at(j)->TakeDamage(vec_ammo.at(i)->GetDamage());
+						//额外效果
+						int extra = vec_ammo.at(i)->GetExtraType();
+						//log("extra effect is: %d", a);
+						if (extra != 0) {
+							if (extra == 1) {
+								ShowAnimation(ICE_N, 7, 0.1f, Size(160, 160), vec_monster.at(j)->getPosition());
+								vec_monster.at(j)->SetFrozen(1.0f);
+							}
+							else if (extra == 2) {
+								ShowAnimation(FIRE_N, 7, 0.1f, Size(80, 80), vec_monster.at(j)->getPosition());
+							}
+						}
+
+						flag_break == true;
+						break;
+					}
 				}
 				if (flag_break)break;
 			}
+			//对于波的攻击方式，只能在这里临时加上了
+
 		}
 	}
 	//销毁失活的子弹
@@ -163,6 +222,16 @@ void SceneGame::update(float dt)
 		for (int i = 0; i < vec_monster.size(); i++) {
 			if (!vec_monster.at(i)->GetActive()) {
 				Monster* temp = vec_monster.at(i);
+				//如果死亡的时候到达终点了，就将hp-1
+				if (temp->IsDestination()) {
+					AddHp(-1);
+				}
+				else {
+					int money = 10 - index_money / 10;
+					money = money < 1 ? 1 : money;
+					AddMoney(money);
+					index_money++;
+				}
 				//死亡动画
 				{
 					ShowAnimation(BOOM_N, 7, 0.08f, Size(160, 160), temp->getPosition());
@@ -202,6 +271,10 @@ void SceneGame::update(float dt)
 		//log("size of vec_todestroy is %d", vec_todestroy.size());
 	}
 
+	//如果游戏结束了，就不继续生成怪物了
+	if (is_win || is_lose) {
+		return;
+	}
 	//依次生成vec_struct_monster里面的怪物
 	if (!is_final&&DataManager::num_monster<=0) {
 		timer_wave += dt;
@@ -212,11 +285,11 @@ void SceneGame::update(float dt)
 			if (flag) {
 				is_final = true;
 				log("final wave!");
-				
+				ShowTip(TIP_1_P);
 			}
 			else {
 				log("create wave: %d", index_wave);
-				
+				ShowTip(TIP_0_P);
 			}
 		}
 	}
@@ -255,13 +328,22 @@ void SceneGame::initUI()
 		ui_money->setPosition(Vec2(100, 660));
 		this->addChild(ui_money,UI_Z);
 
+		text_money = Text::create(Value(DataManager::money_current).asString(), "fonts/LuckiestGuy.ttf", 30);
+		ui_money->addChild(text_money);
+		text_money->setPosition(Vec2(160, 15));
+
+
 		Sprite* ui_core = Sprite::create(CORE_P);
-		ui_core->setPosition(Vec2(250, 660));
+		ui_core->setPosition(Vec2(280, 660));
 		this->addChild(ui_core,UI_Z);
 
-		Sprite* ui_wave = Sprite::create(WAVE_P);
+		text_hp = Text::create(Value(DataManager::hp_current).asString(), "fonts/LuckiestGuy.ttf", 30);
+		ui_core->addChild(text_hp);
+		text_hp->setPosition(Vec2(140, 15));
+
+		/*Sprite* ui_wave = Sprite::create(WAVE_P);
 		ui_wave->setPosition(Vec2(1000, 660));
-		this->addChild(ui_wave, UI_Z);
+		this->addChild(ui_wave, UI_Z);*/
 	}
 	//初始化panel_tower
 	{
@@ -339,11 +421,15 @@ void SceneGame::initUI()
 				Button* button_upgrade1 = Button::create(path_upgrade1, path_upgrade1, path_upgrade1);
 				button_upgrade1->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
-						//升级
+						//升级(由于时间和架构原因，只能临时手动判断了)
+						if((DataManager::money_current-50)>=0)
 						{
 							log("upgrade to tower1");
 							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
 							CreateTower(1);
+						}
+						else {
+							ShowTip(TIP_3_P, 0.3f, 1.1f, 0.7f);
 						}
 						CloseAllMenu();
 					}
@@ -356,11 +442,14 @@ void SceneGame::initUI()
 				button_upgrade2->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//升级
+						if ((DataManager::money_current - 75) >= 0)
 						{
 							log("upgrade to tower2");
 							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
 							CreateTower(2);
-
+						}
+						else {
+							ShowTip(TIP_3_P, 0.3f, 1.1f, 0.7f);
 						}
 						CloseAllMenu();
 					}
@@ -375,10 +464,14 @@ void SceneGame::initUI()
 			button_upgrade4->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
 					//升级
+					if ((DataManager::money_current - 75) >= 0)
 					{
 						log("upgrade to tower4");
 						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
 						CreateTower(4);
+					}
+					else {
+						ShowTip(TIP_3_P, 0.3f, 1.1f, 0.7f);
 					}
 					CloseAllMenu();
 				}
@@ -391,10 +484,14 @@ void SceneGame::initUI()
 			button_upgrade5->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 				if (type == ui::Widget::TouchEventType::ENDED) {
 					//升级
+					if ((DataManager::money_current - 75) >= 0)
 					{
 						log("upgrade to tower5");
 						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
 						CreateTower(5);
+					}
+					else {
+						ShowTip(TIP_3_P, 0.3f, 1.1f, 0.7f);
 					}
 					CloseAllMenu();
 				}
@@ -409,10 +506,14 @@ void SceneGame::initUI()
 				button_upgrade7->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//升级
+						if ((DataManager::money_current - 75) >= 0)
 						{
 							log("upgrade to tower7");
 							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
 							CreateTower(7);
+						}
+						else {
+							ShowTip(TIP_3_P, 0.3f, 1.1f, 0.7f);
 						}
 						CloseAllMenu();
 					}
@@ -425,10 +526,14 @@ void SceneGame::initUI()
 				button_upgrade8->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//升级
+						if ((DataManager::money_current -100) >= 0)
 						{
 							log("upgrade to tower8");
 							vec_towerbase.at(index_towerbase_selected)->DestroyTower();
 							CreateTower(8);
+						}
+						else {
+							ShowTip(TIP_3_P, 0.3f, 1.1f, 0.7f);
 						}
 						CloseAllMenu();
 					}
@@ -439,7 +544,7 @@ void SceneGame::initUI()
 
 			//这里代码可以复用，但是懒得再加节点了
 			{
-				Button* button_destroy = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+				Button* button_destroy = Button::create("UI/icon_destroy.png", "UI/icon_destroy.png", "UI/icon_destroy.png");
 				button_destroy->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//拆除
@@ -450,7 +555,7 @@ void SceneGame::initUI()
 				button_destroy->setPosition(Vec2(50, 0));
 				group_nempty->addChild(button_destroy);
 
-				Button* button_destroy1 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+				Button* button_destroy1 = Button::create("UI/icon_destroy.png", "UI/icon_destroy.png", "UI/icon_destroy.png");
 				button_destroy1->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//拆除
@@ -461,11 +566,12 @@ void SceneGame::initUI()
 				button_destroy1->setPosition(Vec2(50, 0));
 				group_nempty1->addChild(button_destroy1);
 
-				Button* button_destroy2 = Button::create("TestUI/icon_tower.png", "TestUI/icon_tower.png", "TestUI/icon_tower.png");
+				Button* button_destroy2 = Button::create("UI/icon_destroy.png", "UI/icon_destroy.png", "UI/icon_destroy.png");
 				button_destroy2->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//拆除
 						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						AddMoney(50);
 						CloseAllMenu();
 					}
 				});
@@ -479,6 +585,7 @@ void SceneGame::initUI()
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//拆除
 						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						AddMoney(50);
 						CloseAllMenu();
 					}
 				});
@@ -702,6 +809,8 @@ void SceneGame::LoadInfo()
 		vec_name_monster.push_back(Value("small_eye"));
 		vec_name_monster.push_back(Value("many_legs"));
 		vec_name_monster.push_back(Value("few_legs"));
+		vec_name_monster.push_back(Value("big_mouse"));
+		vec_name_monster.push_back(Value("small_mouse"));	
 
 		info_monster = Info::create(vec_name_monster, "Info/monster.json");
 	}
@@ -712,6 +821,8 @@ void SceneGame::LoadInfo()
 		vec_name_monster_file.push_back(Value("small_eye"));
 		vec_name_monster_file.push_back(Value("many_legs"));
 		vec_name_monster_file.push_back(Value("few_legs"));
+		vec_name_monster_file.push_back(Value("big_mouse"));
+		vec_name_monster_file.push_back(Value("small_mouse"));
 
 		info_monster_file = Info::create(vec_name_monster_file, "Info/monster_file.json");
 	}
@@ -785,6 +896,9 @@ void SceneGame::LoadInfo()
 
 void SceneGame::CreateMonster(int type,int path)
 {
+	//创建怪物时候的音效
+	AudioManager::PlayEffect(MONSTER_M);
+
 	ValueVector vv_monster = info_monster->GetIntInfoVectorByID(type);
 	ValueVector vv_monster_file = info_monster_file->GetStringInfoVectorByID(type);
 	//读取文件数据
@@ -836,7 +950,10 @@ void SceneGame::CreateMonster(int type,int path)
 }
 
 void SceneGame::CreateTower(int type)
-{
+{	
+	//创建塔时候的额音效
+	AudioManager::PlayEffect(CLICK_1_M);
+
 	ValueVector vv_tower = info_tower->GetIntInfoVectorByID(type);
 	ValueVector vv_tower_file = info_tower_file->GetStringInfoVectorByID(type);
 	//读取文件数据
@@ -845,6 +962,7 @@ void SceneGame::CreateTower(int type)
 	float inter_animation = (float)vv_tower_file.at(3).asInt() / 1000.0f;
 	std::string path_sprite = vv_tower_file.at(4).asString();
 	std::string name_animation = vv_tower_file.at(5).asString();
+	int type_tower = vv_tower_file.at(6).asInt();
 	//测试输出读取文件的信息
 	{
 		log("size_x: %f;size_y: %f;", size.width, size.height);
@@ -852,12 +970,22 @@ void SceneGame::CreateTower(int type)
 		log("path_sprite: %s", path_sprite.c_str());
 		log("name_animation: %s", name_animation.c_str());
 	}
+	//建塔钱先检测一下金钱是否足够，如果够的话再减少金钱
+	int cost = vv_tower.at(1).asInt();
+	if (DataManager::money_current - cost >= 0) {
+		AddMoney(-cost);
+	}
+	else {
+		ShowTip(TIP_3_P,0.3f,1.1f,0.7f);
+		return;
+	}
 	//这里建塔的过程
 	Tower* tower = Tower::create();
 	tower->BindSprite(path_sprite);
 	tower->BindAnimation(name_animation, len_animation, inter_animation, size);
 	tower->SetAnimationPlay(true);
 	vec_towerbase.at(index_towerbase_selected)->SetTower(tower,type);
+	tower->SetType(type_tower);
 	//添加到vec_towet里面
 	vec_tower.pushBack(tower);
 
@@ -867,7 +995,6 @@ void SceneGame::CreateTower(int type)
 	tower->BindAmmoByInfo(vv_ammo, vv_ammo_file);
 	//设置参数
 	tower->SetValuesByInfo(vv_tower);
-	
 }
 
 void SceneGame::CloseAllMenu()
@@ -973,6 +1100,108 @@ bool SceneGame::CreateMonsterByWaveInfo(int index_wave)
 		
 	} while (type9!=9);
 	return flag;
+}
+
+void SceneGame::AddMoney(int money)
+{
+	int target = DataManager::money_current;
+	target += money;
+	target = (target < 0) ? 0 : target;
+	DataManager::money_current = target;
+	text_money->setText(Value(target).asString());
+}
+
+void SceneGame::AddHp(int hp)
+{
+	int target = DataManager::hp_current;
+	target += hp;
+	target = (target < 0) ? 0 : target;
+	DataManager::hp_current = target;
+	text_hp->setText(Value(target).asString());
+}
+
+void SceneGame::ShowEndMenu()
+{
+	Size size = Director::getInstance()->getVisibleSize();
+
+	panel_endgame = Sprite::create("UI/panel_endgame.png");
+	this->addChild(panel_endgame, UI_Z);
+	panel_endgame->setPosition(size/2);
+	panel_endgame->setContentSize(Size(400, 300));
+	panel_endgame->setOpacity(0);
+	auto moveby = MoveBy::create(2.0f,Vec2(0,0));
+	auto scaleby = ScaleBy::create(0.3f,1.1f);
+	auto fadein = FadeIn::create(0.3f);
+	auto spawn = Spawn::create(scaleby, fadein, nullptr, nullptr);
+	auto seq = Sequence::create(moveby, spawn, CallFunc::create([&]() {
+		//生成按钮
+		{
+			std::string path_restart = "UI/button_restart.png";
+			std::string path_back = "UI/button_back.png";
+			std::string path_next = "UI/button_next.png";
+			Vec2 pos = Vec2(190, 220);
+			Vec2 pos1 = Vec2(190, 145);
+			Vec2 pos2 = Vec2(190, 70);
+			Vec2 pos3 = Vec2(190, 190);
+			Vec2 pos4 = Vec2(190, 100);
+
+			if (is_win) {
+				Button* button_restart = Button::create(path_restart, path_restart, path_restart);
+				panel_endgame->addChild(button_restart);
+				button_restart->setPosition(pos);
+				button_restart->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						SceneManager::ToSceneGame();
+					}
+				});
+
+				Button* button_back = Button::create(path_back, path_back, path_back);
+				panel_endgame->addChild(button_back);
+				button_back->setPosition(pos1);
+				button_back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						SceneManager::ToSceneStart();
+					}
+				});
+
+				Button* button_next = Button::create(path_next, path_next, path_next);
+				panel_endgame->addChild(button_next);
+				button_next->setPosition(pos2);
+				button_next->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						if (DataManager::level_current < 5) {
+							DataManager::level_current++;
+							SceneManager::ToSceneGame();
+						}
+						else {
+							SceneManager::ToSceneStart();
+						}
+					}
+				});
+			}
+			else {
+				Button* button_restart = Button::create(path_restart, path_restart, path_restart);
+				panel_endgame->addChild(button_restart);
+				button_restart->setPosition(pos3);
+				button_restart->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						SceneManager::ToSceneGame();
+					}
+				});
+
+				Button* button_back = Button::create(path_back, path_back, path_back);
+				panel_endgame->addChild(button_back);
+				button_back->setPosition(pos4);
+				button_back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						SceneManager::ToSceneStart();
+					}
+				});
+			}
+			
+		}
+	}), nullptr);
+	panel_endgame->runAction(seq);
 }
 
 

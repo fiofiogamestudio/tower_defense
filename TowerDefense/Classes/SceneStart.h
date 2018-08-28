@@ -1,6 +1,9 @@
 #pragma once
 #include "cocos2d.h"
 #include "Entity.h"
+#include "DateManager.h"
+#include "SceneManager.h"
+#include "AudioManager.h"
 using namespace cocos2d;
 class SceneStart :public Layer {
 public:

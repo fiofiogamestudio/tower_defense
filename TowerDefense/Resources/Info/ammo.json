@@ -2,51 +2,91 @@
 	"ammo(name)":[
 		"is delay",
 		"damage",
-		"speed"
+		"speed",
+		"extra effect(0 is none;1 is ice;2 is fire)",
+		"time of life",
+		"is wave",
+		"range of wave"
 	],
 	"ammo_plasma":[
+		1,
+		8,
+		80,
 		0,
-		10,
-		50
+		15,
+		0,
+		0
 	],
 	"ammo_plasma_up":[
+		1,
+		50,
+		50,
 		0,
-		10,
-		50
+		15,
+		0,
+		0
 	],
 	"ammo_plasma_up_up":[
+		1,
+		8,
+		80,
 		0,
-		10,
-		50
+		15,
+		0,
+		0
 	],
 	"ammo_cannon":[
 		0,
-		30,
-		250
+		15,
+		250,
+		0,
+		15,
+		0,
+		0
 	],
 	"ammo_cannon_up":[
 		0,
-		30,
-		200
+		10,
+		200,
+		1,
+		15,
+		0,
+		0
 	],
 	"ammo_cannon_up_up":[
 		0,
 		30,
-		200
+		200,
+		2,
+		15,
+		0,
+		0
 	],
 	"ammo_boardcast":[
 		0,
-		10,
-		0
+		3,
+		0,
+		0,
+		1,
+		1,
+		80
 	],
 	"ammo_boardcast_up":[
 		0,
-		10,
-		0
+		3,
+		0,
+		0,
+		1,
+		1,
+		80
 	],
 	"ammo_boardcast_up_up":[
 		0,
-		10,
-		0
+		3,
+		0,
+		0,
+		1,
+		1,
+		120
 	]
 }

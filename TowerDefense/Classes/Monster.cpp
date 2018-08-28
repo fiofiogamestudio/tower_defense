@@ -24,6 +24,11 @@ Monster::Monster()
 	_speed = 100;
 	_hp = 80;
 	hp_current = _hp;
+	is_destination = false;
+
+	is_frozen = false;
+	timer_frozen = 0;
+	time_frozen = 0;
 }
 
 Monster::~Monster()
@@ -46,6 +51,18 @@ Monster * Monster::createByPath(Vector<Pos*> path)
 
 void Monster::moveByPath(float dt)
 {
+	int speed = _speed;
+	//就在这里顺便添加冰冻效果了，默认是减速50%
+	if (is_frozen) {
+		speed *= 0.5f;
+		timer_frozen += dt;
+		if (timer_frozen > time_frozen) {
+			is_frozen = false;
+			timer_frozen = 0;
+		}
+	}
+
+
 	Pos* pos_target = _path.at(index_target);
 	Vec2 vec_target = Vec2(pos_target->GetPosx() * 40, pos_target->GetPosy() * 40);
 	Vec2 vec_current = this->getPosition();
@@ -53,12 +70,18 @@ void Monster::moveByPath(float dt)
 	if (distance > 5.0f) {
 		Vec2 dir = Vec2(vec_current, vec_target);
 		dir.normalize();
-		dir *= _speed;
+		dir *= speed;
 		move(dir,dt);
 	}
 	else {
 		if (index_target < _path.size() - 1) {
 			index_target++;
+		}
+		else {
+			if (!is_destination) {
+				SetActive(false);
+				is_destination = true;
+			}
 		}
 	}
 }
@@ -93,4 +116,16 @@ void Monster::TakeDamage(int damage)
 	if (hp_current == 0) {
 		SetActive(false);
 	}
+}
+
+bool Monster::IsDestination()
+{
+	return is_destination;
+}
+
+void Monster::SetFrozen(float time)
+{
+	is_frozen = true;
+	timer_frozen = 0;
+	time_frozen = time;
 }

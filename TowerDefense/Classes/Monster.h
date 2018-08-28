@@ -7,7 +7,7 @@ private:
 	int _hp;
 	Vector<Pos*> _path;
 	int index_target;
-
+	bool is_destination;
 	//血条
 	Sprite* sprite_hp;
 	Sprite* sprite_hp_bg;
@@ -16,6 +16,11 @@ private:
 	int hp_current;
 	void ResizeHpSliderAndHp(int hp);
 	void RefHp();
+
+	//冻结效果
+	bool is_frozen;
+	float timer_frozen;
+	float time_frozen;
 public:
 	Monster();
 	~Monster();
@@ -30,4 +35,10 @@ public:
 
 	//接受伤害
 	void TakeDamage(int damage);
+
+	//是否到达终点
+	bool IsDestination();
+
+	//受到冰冻效果
+	void SetFrozen(float time);
 };

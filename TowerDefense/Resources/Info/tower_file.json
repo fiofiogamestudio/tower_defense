@@ -5,7 +5,8 @@
 		"length of animation",
 		"interval of animation(ms)",
 		"path of sprite",
-		"name of animation"
+		"name of animation",
+		"type"
 	],
 	"plasma":[
 		"80",
@@ -13,7 +14,8 @@
 		"6",
 		"200",
 		"Sprites/Tower/plasma0.png",
-		"Sprites/Tower/plasma"
+		"Sprites/Tower/plasma",
+		"0"
 	],
 	"plasma_up":[
 		"80",
@@ -21,7 +23,8 @@
 		"10",
 		"200",
 		"Sprites/Tower/plasma_up0.png",
-		"Sprites/Tower/plasma_up"
+		"Sprites/Tower/plasma_up",
+		"1"
 	],
 	"plasma_up_up":[
 		"80",
@@ -29,31 +32,35 @@
 		"10",
 		"200",
 		"Sprites/Tower/plasma_up_up0.png",
-		"Sprites/Tower/plasma_up_up"
+		"Sprites/Tower/plasma_up_up",
+		"2"
 	],
 	"cannon":[
 		"80",
-		"120",
-		"6",
+		"110",
+		"1",
 		"200",
-		"Sprites/Tower/plasma0.png",
-		"Sprites/Tower/plasma"
+		"Sprites/Tower/cannon0.png",
+		"Sprites/Tower/cannon",
+		"3"
 	],
 	"cannon_up":[
 		"80",
 		"110",
-		"10",
+		"1",
 		"200",
-		"Sprites/Tower/plasma_up0.png",
-		"Sprites/Tower/plasma_up"
+		"Sprites/Tower/cannon_up0.png",
+		"Sprites/Tower/cannon_up",
+		"4"
 	],
 	"cannon_up_up":[
 		"80",
-		"120",
-		"10",
+		"110",
+		"1",
 		"200",
-		"Sprites/Tower/plasma_up_up0.png",
-		"Sprites/Tower/plasma_up_up"
+		"Sprites/Tower/cannon_up_up0.png",
+		"Sprites/Tower/cannon_up_up",
+		"5"
 	],
 	"boardcast":[
 		"80",
@@ -61,7 +68,8 @@
 		"1",
 		"200",
 		"Sprites/Tower/boardcast0.png",
-		"Sprites/Tower/boardcast"
+		"Sprites/Tower/boardcast",
+		"6"
 	],
 	"boardcast_up":[
 		"80",
@@ -69,7 +77,8 @@
 		"1",
 		"200",
 		"Sprites/Tower/boardcast_up0.png",
-		"Sprites/Tower/boardcast_up"
+		"Sprites/Tower/boardcast_up",
+		"7"
 	],
 	"boardcast_up_up":[
 		"80",
@@ -77,7 +86,7 @@
 		"1",
 		"200",
 		"Sprites/Tower/boardcast_up_up0.png",
-		"Sprites/Tower/boardcast_up_up"
+		"Sprites/Tower/boardcast_up_up",
+		"8"
 	]
-	
 }

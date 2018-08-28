@@ -46,6 +46,11 @@ bool TowerBase::HasTower()
 	return has_tower;
 }
 
+Tower * TowerBase::GetTower()
+{
+	return _tower;
+}
+
 void TowerBase::DestroyTower()
 {
 	has_tower = false;

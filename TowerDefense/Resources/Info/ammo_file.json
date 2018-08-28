@@ -63,30 +63,30 @@
 		"none"
 	],
 	"ammo_boardcast":[
-		"10",
-		"10",
-		"Sprites/Ammo/ammo_plasma0.png",
+		"160",
+		"160",
+		"Sprites/Ammo/ammo_wave0.png",
 		"1",
 		"6",
 		"200",
-		"Sprites/Ammo/ammo_plasma"
+		"Sprites/Ammo/ammo_wave"
 	],
 	"ammo_boardcast_up":[
-		"10",
-		"10",
-		"Sprites/Ammo/ammo_plasma0.png",
+		"160",
+		"160",
+		"Sprites/Ammo/ammo_wave0.png",
 		"1",
 		"6",
 		"200",
-		"Sprites/Ammo/ammo_plasma"
+		"Sprites/Ammo/ammo_wave"
 	],
 	"ammo_boardcast_up_up":[
-		"10",
-		"10",
-		"Sprites/Ammo/ammo_plasma0.png",
+		"320",
+		"320",
+		"Sprites/Ammo/ammo_wave_up_up0.png",
 		"1",
 		"6",
-		"200",
-		"Sprites/Ammo/ammo_plasma"
+		"100",
+		"Sprites/Ammo/ammo_wave_up_up"
 	]
 }

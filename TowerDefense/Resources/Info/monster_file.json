@@ -22,8 +22,8 @@
 		"50",
 		"Sprites/Monster/bigeye0.png",
 		"Sprites/Monster/bigeye",
-		"UI/hp.png",
-		"UI/hp_bg.png"
+		"UI/hp_big.png",
+		"UI/hp_bg_big.png"
 	],
 	"small_eye":[
 		"0",
@@ -48,8 +48,8 @@
 		"50",
 		"Sprites/Monster/manylegs0.png",
 		"Sprites/Monster/fewlegs",
-		"UI/hp.png",
-		"UI/hp_bg.png"
+		"UI/hp_big.png",
+		"UI/hp_bg_big.png"
 	],
 	"few_legs":[
 		"0",
@@ -61,6 +61,32 @@
 		"50",
 		"Sprites/Monster/fewlegs0.png",
 		"Sprites/Monster/fewlegs",
+		"UI/hp.png",
+		"UI/hp_bg.png"
+	],
+	"big_mouse":[
+		"0",
+		"80",
+		"80",
+		"9",
+		"100",
+		"5",
+		"50",
+		"Sprites/Monster/bigmouse0.png",
+		"Sprites/Monster/bigmouse",
+		"UI/hp_big.png",
+		"UI/hp_bg_big.png"
+	],
+	"small_mouse":[
+		"0",
+		"80",
+		"80",
+		"4",
+		"100",
+		"5",
+		"50",
+		"Sprites/Monster/smallmouse0.png",
+		"Sprites/Monster/smallmouse",
 		"UI/hp.png",
 		"UI/hp_bg.png"
 	]

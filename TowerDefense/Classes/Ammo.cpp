@@ -8,8 +8,14 @@ Ammo::Ammo()
 	_dir = Vec2(1, 0);
 	is_delay = false;
 
+	type_extra = 0;
 	//启用计时器
 	timer_life = 0;
+	time_life = LIFE_MAX;
+
+	//对于子弹种类是波的处理
+	is_wave = false;
+	range_wave = 0;
 }
 
 Ammo::~Ammo()
@@ -36,7 +42,7 @@ void Ammo::updateAmmo(float dt)
 	move(dir, dt);
 	//15s之后自动销毁
 	timer_life += dt;
-	if (timer_life > (float)LIFE_MAX) {
+	if (timer_life > (float)LIFE_MAX||timer_life>time_life) {
 		SetActive(false);
 	}
 }
@@ -77,4 +83,23 @@ void Ammo::SetValuesByInfo(ValueVector vv)
 	is_delay = flag;
 	_damage = damage;
 	_speed = speed;
+	type_extra = vv.at(3).asInt();
+	time_life = vv.at(4).asInt();
+	is_wave = vv.at(5).asBool();
+	range_wave = vv.at(6).asInt();
+}
+
+int Ammo::GetExtraType()
+{
+	return type_extra;
+}
+
+bool Ammo::IsWave()
+{
+	return is_wave;
+}
+
+int Ammo::GetWaveRange()
+{
+	return range_wave;
 }

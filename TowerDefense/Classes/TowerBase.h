@@ -14,6 +14,6 @@ public:
 	void SetTower(Tower* tower,int type);
 
 	bool HasTower();
-
+	Tower* GetTower();
 	void DestroyTower();
 };

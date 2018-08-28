@@ -20,6 +20,13 @@ using namespace ui;
 //流星的材质路径(好像加了没有什么用)
 #define METEORT_P ("Particle/meteor.png")
 
+//点击星球后的一些UI的文件路径
+#define ROAD_P ("UI/icon_road.png")
+#define LEVELBG_P ("UI/icon_level_bg.png")
+#define LEVELBG1_P ("UI/icon_level_bg1.png")
+#define LEVELBG2_P ("UI/icon_level_bg2.png")
+#define FLAG_P ("UI/icon_flag.png")
+
 Scene * SceneStart::createScene()
 {
 	auto scene = Scene::create();
@@ -33,6 +40,11 @@ bool SceneStart::init()
 	if (!Layer::init()) {
 		return false;
 	}
+
+	//停止所有的音效同时播放BGM
+	AudioManager::StopEffectAll();
+	AudioManager::PlayBGM(SPACE_M);
+
 	//修正屏幕
 	this->setPosition(Vec2(40,-20));
 	this->setScale(1.1f);
@@ -124,7 +136,7 @@ void SceneStart::initUI()
 		planet->setPosition(Vec2(350, 400));
 		node_UI->addChild(planet);
 		//为星球添加缩放动画
-		auto scaleup = ScaleTo::create(0.8f, 1.01f);
+		auto scaleup = ScaleTo::create(0.8f, 1.015f);
 		auto scaledown = ScaleTo::create(0.8f, 1.0f);
 		auto seq = Sequence::create(scaleup, scaledown,nullptr,nullptr);
 		auto repeat = RepeatForever::create(seq);
@@ -134,6 +146,44 @@ void SceneStart::initUI()
 			node_menu_level = Node::create();
 			planet->addChild(node_menu_level);
 
+			Sprite* road = Sprite::create(ROAD_P);
+			node_menu_level->addChild(road);
+			road->setPosition(Vec2(185,225));
+
+			std::vector<Vec2> vv_pos;
+			vv_pos.push_back(Vec2(73, 168));
+			vv_pos.push_back(Vec2(108, 204));
+			vv_pos.push_back(Vec2(140, 184));
+			vv_pos.push_back(Vec2(200, 190));
+			vv_pos.push_back(Vec2(210, 230));
+			vv_pos.push_back(Vec2(283, 221));
+			vv_pos.push_back(Vec2(300, 290));
+			unsigned int index_button = 0;
+			for (auto pos : vv_pos) {
+				Button* button_level_bg = Button::create(LEVELBG_P,LEVELBG1_P,LEVELBG2_P);
+				button_level_bg->_ID = index_button;
+				button_level_bg->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+					if (type == ui::Widget::TouchEventType::ENDED) {
+						if (can_click) {
+							//播放点击音效
+							AudioManager::PlayEffect(CLICK_M);
+
+							log("tag is: %d", sender->_ID);
+							DataManager::level_current = sender->_ID;
+
+							SceneManager::ToSceneGame();
+						}
+					}
+				});
+				node_menu_level->addChild(button_level_bg);
+				button_level_bg->setPosition(pos);
+				index_button++;
+			}
+
+			Vector<Node*> children = node_menu_level->getChildren();
+			for (auto child : children) {
+				child->setOpacity(0);
+			}
 		}
 	}
 	//显示空间站
@@ -186,12 +236,6 @@ void SceneStart::initTouch()
 
 void SceneStart::update(float dt)
 {
-	if (can_click) {
-		log("a");
-	}
-	else {
-		log("b");
-	}
 	//根据计时器来随机生成星星
 	{
 		CreateStarByRandom(dt);
@@ -366,6 +410,9 @@ void SceneStart::CreateMeteorByRandom1(float dt)
 
 void SceneStart::OpenPlanet()
 {
+	//播放点击音效
+	AudioManager::PlayEffect(CLICK_M);
+
 	auto scaleto = ScaleTo::create(0.8f, 1.45f);
 	auto moveto = MoveTo::create(0.8f, Vec2(280, -205));
 	auto spawn = Spawn::create(scaleto, moveto, nullptr, nullptr);
@@ -374,11 +421,21 @@ void SceneStart::OpenPlanet()
 	auto fadeout = FadeOut::create(0.3f);
 	_title->runAction(fadeout);
 
+	Vector<Node*> children = node_menu_level->getChildren();
+	for (auto child : children) {
+		log("show");
+		auto fadein = FadeIn::create(1.6f);
+		child->runAction(fadein);
+	}
+
 	DisableClick(0.8f);
 }
 
 void SceneStart::OpenStation()
 {
+	//播放点击音效
+	AudioManager::PlayEffect(CLICK_M);
+
 	auto scaleto = ScaleTo::create(0.8f, 1.5f);
 	auto moveto = MoveTo::create(0.8f, Vec2(-850, -100));
 	auto spawn = Spawn::create(scaleto, moveto, nullptr, nullptr);
@@ -392,6 +449,9 @@ void SceneStart::OpenStation()
 
 void SceneStart::ReturnToSpace()
 {
+	//播放点击音效
+	AudioManager::PlayEffect(CLICK_M);
+
 	log("return!");
 	auto scaleto = ScaleTo::create(0.8f, 1.0f);
 	auto moveto = MoveTo::create(0.8f, Vec2(0, 0));
@@ -400,6 +460,12 @@ void SceneStart::ReturnToSpace()
 
 	auto fadein = FadeIn::create(0.3f);
 	_title->runAction(fadein);
+
+	Vector<Node*> children = node_menu_level->getChildren();
+	for (auto child : children) {
+		auto fadeout = FadeOut::create(0.8f);
+		child->runAction(fadeout);
+	}
 
 	DisableClick(0.8f);
 }

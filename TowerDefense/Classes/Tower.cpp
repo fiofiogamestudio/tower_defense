@@ -31,6 +31,26 @@ void Tower::fire(float dt,Vec2 dir,Vector<Ammo*> &vec_ammo,Layer* scene,int orde
 		_timer = 0;
 		//发射子弹
 		{
+			//发射子弹的同时根据type播放发射声音
+			switch (_type) {
+			case 0:
+			case 2:
+				AudioManager::PlayEffect(ZIZI_M);
+				break;
+			case 1:
+				AudioManager::PlayEffect(ZIZI1_M);
+				break;
+			case 3:
+			case 4:
+			case 5:
+				AudioManager::PlayEffect(FIRE_M);
+				break;
+			case 6:
+			case 7:
+			case 8:
+				AudioManager::PlayEffect(WAVE_M);
+			}
+
 			//载入数据
 			//log("size of vv_ammo: %d;size of ammo_fire: %d", vv_ammo.size(), vv_ammo_file.size());
 			Size size = Size(vv_ammo_file.at(0).asInt(), vv_ammo_file.at(1).asInt());
@@ -77,4 +97,14 @@ void Tower::SetValuesByInfo(ValueVector vv)
 	_cd = cd;
 	_cost = cost;
 	vec_offset_fire = offset;
+}
+
+int Tower::GetCost()
+{
+	return _cost;
+}
+
+void Tower::SetType(int type)
+{
+	_type = type;
 }

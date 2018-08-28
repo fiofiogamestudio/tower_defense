@@ -9,7 +9,14 @@ private:
 	//是否时持续伤害
 	bool is_delay;
 
+	//附加效果
+	int type_extra;
+
 	float timer_life;
+	float time_life;
+	//冲击波的效果
+	bool is_wave;
+	int range_wave;
 
 public:
 	Ammo();
@@ -24,4 +31,10 @@ public:
 
 	//设置子弹数值
 	void SetValuesByInfo(ValueVector vv);
+
+	//附加效果
+	int GetExtraType();
+	//冲击波
+	bool IsWave();
+	int GetWaveRange();
 };
