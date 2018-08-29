@@ -4,6 +4,8 @@
 #include "DateManager.h"
 #include "SceneManager.h"
 #include "AudioManager.h"
+#include "ui/CocosGUI.h"
+using namespace ui;
 using namespace cocos2d;
 class SceneStart :public Layer {
 public:
@@ -13,6 +15,20 @@ public:
 
 	Node* node_UI;
 	Sprite* _title;
+	Sprite* _record;
+	Text* text_kill;
+	Text* text_win;
+	Button* button_quit;
+	Button* button_audio;
+	Sprite* sprite_audio;
+
+	Button* button_stronger;
+	Sprite* sprite_stronger;
+	Button* button_faster;
+	Sprite* sprite_faster;
+	Button* button_perfect;
+	Sprite* sprite_perfect;
+
 
 	Node* node_menu_level;
 	Node* node_menu_settings;

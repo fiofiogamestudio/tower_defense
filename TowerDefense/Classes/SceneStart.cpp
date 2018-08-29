@@ -27,6 +27,9 @@ using namespace ui;
 #define LEVELBG2_P ("UI/icon_level_bg2.png")
 #define FLAG_P ("UI/icon_flag.png")
 
+//点击空间站后的一些UI的文件路径
+#define RECORD_P ("UI/record.png")
+
 Scene * SceneStart::createScene()
 {
 	auto scene = Scene::create();
@@ -46,7 +49,7 @@ bool SceneStart::init()
 	AudioManager::PlayBGM(SPACE_M);
 
 	//修正屏幕
-	this->setPosition(Vec2(40,-20));
+	this->setPosition(Vec2(40,-25));
 	this->setScale(1.1f);
 
 	//初始化随机数种子
@@ -93,6 +96,64 @@ void SceneStart::initUI()
 {
 	node_UI = Node::create();
 	this->addChild(node_UI,UI_Z);
+	//退出按钮
+	{
+		std::string path_button = "UI/quit.png";
+		button_quit = Button::create(path_button, path_button, path_button);
+		button_quit->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+			if (type == ui::Widget::TouchEventType::ENDED) {
+				if (can_click) {
+					//播放点击音效
+					AudioManager::PlayEffect(CLICK_M);
+					//退出游戏
+					DataManager::saveRecord();
+
+					Director::getInstance()->end();
+				}
+			}
+		});
+		this->addChild(button_quit, TITLE_Z);
+		button_quit->setPosition(Vec2(70, 660));
+	}
+	//声音控制按钮
+	{
+		std::string path_audio = "UI/audio.png";
+		button_audio = Button::create(path_audio, path_audio, path_audio);
+		button_audio->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+			if (type == ui::Widget::TouchEventType::ENDED) {
+				if (can_click) {
+					//播放点击音效
+					AudioManager::PlayEffect(CLICK_M);
+					
+					if (DataManager::is_audio) {
+						AudioManager::CloseAudio();
+						sprite_audio->setVisible(true);
+					}
+					else {
+						AudioManager::OpenAudio();
+						sprite_audio->setVisible(false);
+					}
+				}
+			}
+		});
+		this->addChild(button_audio, TITLE_Z);
+		button_audio->setPosition(Vec2(1113, 660));
+
+		std::string path_audio1 = "UI/audio1.png";
+		sprite_audio = Sprite::create(path_audio1);
+		this->addChild(sprite_audio, TITLE_Z);
+		sprite_audio->setPosition(button_audio->getPosition());
+		/*if (DataManager::is_audio) {
+			log("is audio!");
+		}
+		else {
+			log("is not audio!");
+		}*/
+		//初始化显示
+		if (DataManager::is_audio) {
+			sprite_audio->setVisible(false);
+		}
+	}
 	//显示标题
 	{
 		Vec2 pos_title = Vec2(850, 550);
@@ -122,6 +183,132 @@ void SceneStart::initUI()
 		auto moveto = MoveTo::create(2.5f, Vec2(size_clip.width, 0));
 		auto moveback = MoveTo::create(2.5f, Vec2(-size_clip.width, 0));
 		spark->runAction(RepeatForever::create(Sequence::create(moveto, moveback, nullptr, nullptr)));
+	}
+	//添加空间站的统计信息面板，隐藏面板及其子节点
+	{
+		Vec2 pos = Vec2(800, 350);
+		Size size = Size(600, 500);
+		_record = Sprite::create(RECORD_P);
+		this->addChild(_record, TITLE_Z+1);
+		_record->setContentSize(size);
+		_record->setPosition(pos);
+
+		//统计信息面板显示的数字
+		{
+			text_kill= Text::create(Value(DataManager::num_kill).asString(), "fonts/LuckiestGuy.ttf", 30);
+			_record->addChild(text_kill);
+			text_kill->setPosition(Vec2(320, 295));
+
+			text_win=Text::create(Value(DataManager::num_win).asString(), "fonts/LuckiestGuy.ttf", 30);
+			_record->addChild(text_win);
+			text_win->setPosition(Vec2(320, 242));
+		}
+
+		_record->setOpacity(0);
+		auto children = _record->getChildren();
+		for (auto child : children) {
+			child->setOpacity(0);
+		}
+	}
+	//添加星球挑战模式的按钮
+	{
+		Vec2 pos = Vec2(240, 500);
+		Vec2 pos1 = Vec2(240, 420);
+		Vec2 pos2 = Vec2(240, 340);
+		std::string path_stronger = "UI/stronger.png";
+		std::string path_faster = "UI/faster.png";
+		std::string path_perfect = "UI/perfect.png";
+		std::string path_mode = "UI/mode.png";
+
+		button_stronger = Button::create(path_stronger, path_stronger, path_stronger);
+		this->addChild(button_stronger, TITLE_Z);
+		button_stronger->setPosition(pos);
+		sprite_stronger = Sprite::create(path_mode);
+		this->addChild(sprite_stronger,TITLE_Z);
+		sprite_stronger->setPosition(pos);
+		if (DataManager::val_stronger < 1.05f) {
+			sprite_stronger->setVisible(false);
+		}
+		button_stronger->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+			if (type == ui::Widget::TouchEventType::ENDED) {
+				if (can_click) {
+					//播放点击音效
+					AudioManager::PlayEffect(CLICK_M);
+
+					if (DataManager::val_stronger < 1.05f) {
+						DataManager::val_stronger = 1.1f;
+						sprite_stronger->setVisible(true);
+					}
+					else {
+						DataManager::val_stronger = 1.0f;
+						sprite_stronger->setVisible(false);
+					}
+				}
+			}
+		});
+		
+
+		button_faster = Button::create(path_faster, path_faster, path_faster);
+		this->addChild(button_faster, TITLE_Z);
+		button_faster->setPosition(pos1);
+		sprite_faster = Sprite::create(path_mode);
+		this->addChild(sprite_faster, TITLE_Z);
+		sprite_faster->setPosition(pos1);
+		if (DataManager::val_faster < 1.05f) {
+			sprite_faster->setVisible(false);
+		}
+		button_faster->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+			if (type == ui::Widget::TouchEventType::ENDED) {
+				if (can_click) {
+					//播放点击音效
+					AudioManager::PlayEffect(CLICK_M);
+
+					if (DataManager::val_faster < 1.05f) {
+						DataManager::val_faster = 1.1f;
+						sprite_faster->setVisible(true);
+					}
+					else {
+						DataManager::val_faster = 1.0f;
+						sprite_faster->setVisible(false);
+					}
+				}
+			}
+		});
+
+		button_perfect = Button::create(path_perfect, path_perfect, path_perfect);
+		this->addChild(button_perfect, TITLE_Z);
+		button_perfect->setPosition(pos2);
+		sprite_perfect = Sprite::create(path_mode);
+		this->addChild(sprite_perfect,TITLE_Z);
+		sprite_perfect->setPosition(pos2);
+		if (!DataManager::is_perfect) {
+			sprite_perfect->setVisible(false);
+		}
+		button_perfect->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+			if (type == ui::Widget::TouchEventType::ENDED) {
+				if (can_click) {
+					//播放点击音效
+					AudioManager::PlayEffect(CLICK_M);
+
+					if (DataManager::is_perfect) {
+						DataManager::is_perfect = false;
+						sprite_perfect->setVisible(false);
+					}
+					else {
+						DataManager::is_perfect = true;
+						sprite_perfect->setVisible(true);
+					}
+				}
+			}
+		});
+
+		//隐藏显示
+		button_stronger->setOpacity(0);
+		button_faster->setOpacity(0);
+		button_perfect->setOpacity(0);
+		sprite_stronger->setOpacity(0);
+		sprite_faster->setOpacity(0);
+		sprite_perfect->setOpacity(0);
 	}
 	//显示星球
 	{
@@ -157,7 +344,7 @@ void SceneStart::initUI()
 			vv_pos.push_back(Vec2(200, 190));
 			vv_pos.push_back(Vec2(210, 230));
 			vv_pos.push_back(Vec2(283, 221));
-			vv_pos.push_back(Vec2(300, 290));
+			//vv_pos.push_back(Vec2(300, 290));
 			unsigned int index_button = 0;
 			for (auto pos : vv_pos) {
 				Button* button_level_bg = Button::create(LEVELBG_P,LEVELBG1_P,LEVELBG2_P);
@@ -205,7 +392,7 @@ void SceneStart::initUI()
 		auto repeat = RepeatForever::create(seq);
 		station->runAction(repeat);
 	}
-
+	
 }
 
 void SceneStart::initTouch()
@@ -413,20 +600,41 @@ void SceneStart::OpenPlanet()
 	//播放点击音效
 	AudioManager::PlayEffect(CLICK_M);
 
+	//放大星球
 	auto scaleto = ScaleTo::create(0.8f, 1.45f);
 	auto moveto = MoveTo::create(0.8f, Vec2(280, -205));
 	auto spawn = Spawn::create(scaleto, moveto, nullptr, nullptr);
 	node_UI->runAction(spawn);
 
+	//隐藏标题和退出按钮和声音按钮
 	auto fadeout = FadeOut::create(0.3f);
 	_title->runAction(fadeout);
+	button_quit->runAction(fadeout->clone());
+	button_audio->runAction(fadeout->clone());
+	sprite_audio->runAction(fadeout->clone());
 
+	//显示关卡icon
 	Vector<Node*> children = node_menu_level->getChildren();
 	for (auto child : children) {
 		log("show");
 		auto fadein = FadeIn::create(1.6f);
 		child->runAction(fadein);
 	}
+
+	//显示挑战模式中的面板
+	auto fadein = FadeIn::create(1.0f);
+
+	auto moveby1 = MoveBy::create(0.8f, Vec2(0, 0));
+	auto fadein1 = FadeIn::create(0.3f);
+	auto seq1 = Sequence::create(moveby1, fadein1, nullptr);
+	button_stronger->runAction(seq1);
+	button_faster->runAction(seq1->clone());
+	button_perfect->runAction(seq1->clone());
+	sprite_stronger->runAction(seq1->clone());
+	sprite_faster->runAction(seq1->clone());
+	sprite_perfect->runAction(seq1->clone());
+	
+
 
 	DisableClick(0.8f);
 }
@@ -436,13 +644,30 @@ void SceneStart::OpenStation()
 	//播放点击音效
 	AudioManager::PlayEffect(CLICK_M);
 
+	//放大空间站
 	auto scaleto = ScaleTo::create(0.8f, 1.5f);
-	auto moveto = MoveTo::create(0.8f, Vec2(-850, -100));
+	auto moveto = MoveTo::create(0.8f, Vec2(-950, -120));
 	auto spawn = Spawn::create(scaleto, moveto, nullptr, nullptr);
 	node_UI->runAction(spawn);
 
+	//隐藏标题和退出按钮
 	auto fadeout = FadeOut::create(0.3f);
 	_title->runAction(fadeout);
+	button_quit->runAction(fadeout->clone());
+	button_audio->runAction(fadeout->clone());
+	sprite_audio->runAction(fadeout->clone());
+
+	//显示record面板及其子节点
+	auto fadein = FadeIn::create(1.0f);
+	
+	auto moveby1 = MoveBy::create(0.8f, Vec2(0, 0));
+	auto fadein1 = FadeIn::create(0.3f);
+	auto seq1 = Sequence::create(moveby1, fadein1, nullptr);
+	_record->runAction(seq1);
+	auto children1 = _record->getChildren();
+	for (auto child1 : children1) {
+		child1->runAction(seq1->clone());
+	}
 
 	DisableClick(0.8f);
 }
@@ -452,20 +677,44 @@ void SceneStart::ReturnToSpace()
 	//播放点击音效
 	AudioManager::PlayEffect(CLICK_M);
 
-	log("return!");
+	//缩小视野
+	//log("return!");
 	auto scaleto = ScaleTo::create(0.8f, 1.0f);
 	auto moveto = MoveTo::create(0.8f, Vec2(0, 0));
 	auto spawn = Spawn::create(scaleto, moveto, nullptr, nullptr);
 	node_UI->runAction(spawn);
 
+	//显示标题和退出按钮
 	auto fadein = FadeIn::create(0.3f);
 	_title->runAction(fadein);
+	button_quit->runAction(fadein->clone());
+	button_audio->runAction(fadein->clone());
+	sprite_audio->runAction(fadein->clone());
 
+	//隐藏关卡icon
 	Vector<Node*> children = node_menu_level->getChildren();
 	for (auto child : children) {
 		auto fadeout = FadeOut::create(0.8f);
 		child->runAction(fadeout);
 	}
+
+	//关闭显示record面板
+	auto fadeout1 = FadeOut::create(0.3f);
+	_record->runAction(fadeout1);
+	auto children1 = _record->getChildren();
+	for (auto child1 : children1) {
+		child1->runAction(fadeout1->clone());
+	}
+
+	//关闭显示挑战模式中的按钮
+	button_stronger->runAction(fadeout1->clone());
+	button_faster->runAction(fadeout1->clone());
+	button_perfect->runAction(fadeout1->clone());
+	sprite_stronger->runAction(fadeout1->clone());
+	sprite_faster->runAction(fadeout1->clone());
+	sprite_perfect->runAction(fadeout1->clone());
+
+
 
 	DisableClick(0.8f);
 }

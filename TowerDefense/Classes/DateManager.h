@@ -18,6 +18,12 @@ public:
 	//用来持久化的数据
 	static int num_kill;
 	static int num_win;
+	static bool is_audio;
 	static void initRecord();
 	static void saveRecord();
+
+	//挑战模式
+	static float val_stronger;
+	static float val_faster;
+	static bool is_perfect;
 };

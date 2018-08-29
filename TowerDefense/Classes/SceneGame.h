@@ -118,4 +118,16 @@ public:
 
 	//金钱标志位,每获得10次金钱，击杀怪物获得金钱数就减少1
 	int index_money = 0;
+
+	//暂停的UI
+	bool is_slow = false;
+	bool is_pause = false;
+	Button* button_pause;
+	Sprite* sprite_pause;
+	Sprite* sprite_continue;
+	Node* panel_pause;
+	void ShowPauseMenu();
+	void HidePauseMenu();
+
+	float timescale = 1.0f;
 };

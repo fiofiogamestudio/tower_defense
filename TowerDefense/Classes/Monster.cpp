@@ -103,6 +103,8 @@ void Monster::SetValuesByInfo(ValueVector vec)
 {
 	_speed = vec.at(0).asInt();
 	_hp = vec.at(1).asInt();
+	_speed *= DataManager::val_faster;
+	_hp *= DataManager::val_stronger;
 	hp_current = _hp;
 	//刷新血槽精灵
 	ResizeHpSliderAndHp(_hp);
@@ -114,6 +116,9 @@ void Monster::TakeDamage(int damage)
 	hp_current = (hp_current >= 0) ? hp_current : 0;
 	RefHp();
 	if (hp_current == 0) {
+		//记录加一
+		DataManager::num_kill++;
+
 		SetActive(false);
 	}
 }

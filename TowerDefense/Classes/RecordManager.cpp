@@ -18,4 +18,5 @@ void RecordManager::ResetKeyNum()
 {
 	SetKeyNum(KILL_KEY, 0);
 	SetKeyNum(WIN_KEY, 0);
+	SetKeyNum(AUDIO_KEY, 1);
 }

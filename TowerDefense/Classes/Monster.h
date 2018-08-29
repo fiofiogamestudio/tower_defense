@@ -1,6 +1,7 @@
 #pragma once
 #include "Entity.h"
 #include "Pos.h"
+#include "DateManager.h"
 class Monster :public Entity {
 private:
 	int _speed;

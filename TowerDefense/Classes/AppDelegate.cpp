@@ -130,8 +130,10 @@ bool AppDelegate::applicationDidFinishLaunching() {
     //director->runWithScene(scene);
 
 	//用SceneManager来初始化场景
+	DataManager::initRecord();
 	AudioManager::PreLoadAll();
 	SceneManager::BeginWithSceneStart();
+	//DataManager::level_current = 3;
 	//SceneManager::ToSceneGame();
 
     return true;

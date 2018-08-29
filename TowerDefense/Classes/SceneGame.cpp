@@ -116,9 +116,13 @@ bool SceneGame::init()
 
 void SceneGame::update(float dt)
 {
+
 	//log("dt time: %f", dt);
 	//胜利或者失败条件判断
 	if (is_final && !is_win&&vec_struct_monster.size() <= 0&&DataManager::num_monster<=0&&DataManager::hp_current>0) {
+		//记录胜利数加一
+		DataManager::num_win++;
+
 		is_win = true;
 		ShowTip(TIP_2_P);
 		ShowEndMenu();
@@ -184,6 +188,8 @@ void SceneGame::update(float dt)
 						//log("hit!");
 						//结算碰撞
 						vec_monster.at(j)->TakeDamage(vec_ammo.at(i)->GetDamage());
+
+
 						//额外效果
 						int extra = vec_ammo.at(i)->GetExtraType();
 						//log("extra effect is: %d", a);
@@ -344,6 +350,85 @@ void SceneGame::initUI()
 		/*Sprite* ui_wave = Sprite::create(WAVE_P);
 		ui_wave->setPosition(Vec2(1000, 660));
 		this->addChild(ui_wave, UI_Z);*/
+	}
+	//初始化暂停按钮
+	{
+		std::string path_pause = "UI/pause.png";
+		Vec2 pos_pause = Vec2(1220, 660);
+		button_pause = Button::create(path_pause, path_pause, path_pause);
+		this->addChild(button_pause, UI_Z);
+		button_pause->setPosition(pos_pause);
+		button_pause->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+			if (type == ui::Widget::TouchEventType::ENDED) {
+				//播放点击音效
+				AudioManager::PlayEffect(CLICK_1_M);
+
+				if (!is_pause) {
+					is_pause = true;
+					sprite_pause->setVisible(false);
+					sprite_continue->setVisible(true);
+					ShowPauseMenu();
+				}
+				else {
+					is_pause = false;
+					sprite_pause->setVisible(true);
+					sprite_continue->setVisible(false);
+					HidePauseMenu();
+				}
+			}
+		});
+		std::string path_pause1 = "UI/pause1.png";
+		sprite_pause = Sprite::create(path_pause1);
+		this->addChild(sprite_pause, UI_Z);
+		sprite_pause->setPosition(pos_pause);
+
+		std::string path_continue = "UI/continue.png";
+		sprite_continue = Sprite::create(path_continue);
+		this->addChild(sprite_continue, UI_Z);
+		sprite_continue->setPosition(pos_pause);
+		sprite_continue->setVisible(false);
+	}
+	//初始化panel_pause
+	{
+		Size size = Director::getInstance()->getVisibleSize();
+		panel_pause = Sprite::create("UI/panel_endgame.png");
+		this->addChild(panel_pause, UI_Z);
+		panel_pause->setPosition(size / 2);
+		panel_pause->setContentSize(Size(400, 300));
+		panel_pause->setVisible(false);
+
+		//生成按钮
+		{
+			std::string path_restart = "UI/button_restart.png";
+			std::string path_back = "UI/button_back.png";
+			Vec2 pos = Vec2(190, 190);
+			Vec2 pos1 = Vec2(190, 100);
+			Button* button_restart = Button::create(path_restart, path_restart, path_restart);
+			panel_pause->addChild(button_restart);
+			button_restart->setPosition(pos);
+			button_restart->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+				if (type == ui::Widget::TouchEventType::ENDED) {
+					AudioManager::PlayEffect(CLICK_1_M);
+
+					log("click restart!");
+					Director::getInstance()->getScheduler()->setTimeScale(1.0f);
+					SceneManager::ToSceneGame();
+				}
+			});
+
+			Button* button_back = Button::create(path_back, path_back, path_back);
+			panel_pause->addChild(button_back);
+			button_back->setPosition(pos1);
+			button_back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+				if (type == ui::Widget::TouchEventType::ENDED) {
+					AudioManager::PlayEffect(CLICK_1_M);
+
+					log("click back!");
+					Director::getInstance()->getScheduler()->setTimeScale(1.0f);
+					SceneManager::ToSceneStart();
+				}
+			});
+		}
 	}
 	//初始化panel_tower
 	{
@@ -549,6 +634,7 @@ void SceneGame::initUI()
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//拆除
 						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						AddMoney(50);
 						CloseAllMenu();
 					}
 				});
@@ -560,6 +646,7 @@ void SceneGame::initUI()
 					if (type == ui::Widget::TouchEventType::ENDED) {
 						//拆除
 						vec_towerbase.at(index_towerbase_selected)->DestroyTower();
+						AddMoney(50);
 						CloseAllMenu();
 					}
 				});
@@ -762,7 +849,7 @@ void SceneGame::DetectorVecTowebase(Point point)
 				Vec2 pos = vec_towerbase.at(i)->getPosition();
 				node_UI_tower->setPosition(pos);
 
-				//log("selected: %d",i);
+				log("selected: %d",i);
 				//是否有塔
 				has_tower_towerbase_selected = vec_towerbase.at(i)->HasTower();
 				if (has_tower_towerbase_selected) {
@@ -777,7 +864,7 @@ void SceneGame::DetectorVecTowebase(Point point)
 			
 		}
 		else {
-			log("not selected: %d", i);
+			//log("not selected: %d", i);
 		}
 	}
 	//判断是否点击到panel_tower
@@ -1001,7 +1088,11 @@ void SceneGame::CloseAllMenu()
 {
 	//关闭菜单时恢复正常的时间流速
 	{
-		Director::getInstance()->getScheduler()->setTimeScale(1.0f);
+		is_slow = false;
+		timescale = is_pause ? 0.0f : 1.0f;
+		Director::getInstance()->getScheduler()->setTimeScale(timescale);
+		//timescale = 1.0f;
+
 		_mask->setVisible(false);
 	}
 	node_UI_tower->setVisible(false);
@@ -1014,9 +1105,14 @@ void SceneGame::CloseAllMenu()
 
 void SceneGame::OpenMenu(int index)
 {
+	CloseAllMenu();
 	//打开菜单时添加时间减缓效果
 	{
-		Director::getInstance()->getScheduler()->setTimeScale(0.15f);
+		is_slow = true;
+		timescale = is_pause ? 0.0f : 0.15f;
+		Director::getInstance()->getScheduler()->setTimeScale(timescale);
+		//timescale = 0.15f;
+
 		_mask->setVisible(true);
 	}
 	node_UI_tower->setVisible(true);
@@ -1151,6 +1247,8 @@ void SceneGame::ShowEndMenu()
 				button_restart->setPosition(pos);
 				button_restart->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
+						AudioManager::PlayEffect(CLICK_1_M);
+						Director::getInstance()->getScheduler()->setTimeScale(1.0f);
 						SceneManager::ToSceneGame();
 					}
 				});
@@ -1160,6 +1258,8 @@ void SceneGame::ShowEndMenu()
 				button_back->setPosition(pos1);
 				button_back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
+						AudioManager::PlayEffect(CLICK_1_M);
+						Director::getInstance()->getScheduler()->setTimeScale(1.0f);
 						SceneManager::ToSceneStart();
 					}
 				});
@@ -1169,11 +1269,14 @@ void SceneGame::ShowEndMenu()
 				button_next->setPosition(pos2);
 				button_next->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
+						AudioManager::PlayEffect(CLICK_1_M);
 						if (DataManager::level_current < 5) {
 							DataManager::level_current++;
+							Director::getInstance()->getScheduler()->setTimeScale(1.0f);
 							SceneManager::ToSceneGame();
 						}
 						else {
+							Director::getInstance()->getScheduler()->setTimeScale(1.0f);
 							SceneManager::ToSceneStart();
 						}
 					}
@@ -1185,6 +1288,8 @@ void SceneGame::ShowEndMenu()
 				button_restart->setPosition(pos3);
 				button_restart->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
+						AudioManager::PlayEffect(CLICK_1_M);
+						Director::getInstance()->getScheduler()->setTimeScale(1.0f);
 						SceneManager::ToSceneGame();
 					}
 				});
@@ -1194,6 +1299,8 @@ void SceneGame::ShowEndMenu()
 				button_back->setPosition(pos4);
 				button_back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 					if (type == ui::Widget::TouchEventType::ENDED) {
+						AudioManager::PlayEffect(CLICK_1_M);
+						Director::getInstance()->getScheduler()->setTimeScale(1.0f);
 						SceneManager::ToSceneStart();
 					}
 				});
@@ -1202,6 +1309,24 @@ void SceneGame::ShowEndMenu()
 		}
 	}), nullptr);
 	panel_endgame->runAction(seq);
+}
+
+void SceneGame::ShowPauseMenu()
+{
+	//时间暂停
+	timescale = 0.0f;
+	Director::getInstance()->getScheduler()->setTimeScale(timescale);
+
+	panel_pause->setVisible(true);
+}
+
+void SceneGame::HidePauseMenu()
+{
+	//时间恢复
+	timescale = is_slow ? 0.15f : 1.0f;
+	Director::getInstance()->getScheduler()->setTimeScale(timescale);
+
+	panel_pause->setVisible(false);
 }
 
 

@@ -37,4 +37,7 @@ public:
 	//³å»÷²¨
 	bool IsWave();
 	int GetWaveRange();
+
+	bool IsDelay();
+	void AddDamage(int i);
 };

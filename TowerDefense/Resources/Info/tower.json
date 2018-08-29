@@ -6,19 +6,19 @@
 		"offset_y of pos_attack"
 	],
 	"plasma":[
-		400,
+		300,
 		100,
 		5,
 		50
 	],
 	"plasma_up":[
-		5000,
+		1000,
 		50,
 		5,
 		50
 	],
 	"plasma_up_up":[
-		250,
+		200,
 		75,
 		5,
 		50

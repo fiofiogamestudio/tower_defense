@@ -67,6 +67,8 @@ int Ammo::GetDamage()
 	else {
 		float t = rand_0_1();
 		if (t < (float)1/60.0f) {
+			_damage -= 1;
+			if (_damage <= 0)_damage = 1;
 			return _damage;
 		}
 		else {
@@ -102,4 +104,17 @@ bool Ammo::IsWave()
 int Ammo::GetWaveRange()
 {
 	return range_wave;
+}
+
+bool Ammo::IsDelay()
+{
+	return is_delay;
+}
+
+void Ammo::AddDamage(int i)
+{
+	_damage -= i;
+	if (_damage <= 0) {
+		SetActive(false);
+	}
 }
